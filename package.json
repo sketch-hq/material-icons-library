@@ -4,7 +4,7 @@
   "description": "A proof of concept tool to generate Sketch files from other file formats",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc index.ts",
+    "build": "tsc src/index.ts",
     "start": "yarn build && node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
