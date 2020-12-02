@@ -1,6 +1,7 @@
 import fs = require('fs')
 import path = require('path')
 import glob = require('glob')
+import uuid = require('uuid')
 import { parse, stringify } from 'svgson'
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
 
@@ -23,7 +24,7 @@ glob("assets/**/*.svg", function (er, files) {
         // Convert path into something Sketch can handle
         let path:FileFormat.ShapePath = {
           _class: "shapePath",
-          do_objectID: 'uuid',
+          do_objectID: uuid.v4(),
           name: layerName,
           nameIsFixed: true,
           pointRadiusBehaviour: null,
