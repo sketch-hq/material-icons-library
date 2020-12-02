@@ -2,8 +2,12 @@ import fs = require('fs')
 import path = require('path')
 import glob = require('glob')
 import uuid = require('uuid')
+
 import { parse, stringify } from 'svgson'
+import { Circle, Path, toPoints } from 'svg-points'
+
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
+import { CurveMode, CurvePoint } from '@sketch-hq/sketch-file-format-ts/dist/cjs/v1-types'
 
 
 console.log(`Sketch Synth v${process.env.npm_package_version}`);
@@ -21,6 +25,29 @@ glob("assets/**/*.svg", function (er, files) {
       console.log(`Heigth: ${height}`)
       json.children.forEach(child => {
         console.log(child)
+        const svgPath:Path = {
+          type: 'path',
+          d: child.attributes.d
+        }
+        let svgPathPoints = toPoints(svgPath)
+        let sketchPathPoints = []
+        svgPathPoints.forEach(point => {
+          // Convert SVG Points to Sketch CurvePoints
+          let sketchPoint:CurvePoint = {
+            _class: "curvePoint",
+            point: "",
+            cornerRadius: 0,
+            curveFrom: "",
+            curveTo: "",
+            // curveMode: point.curve.type,
+            curveMode: CurveMode.None,
+            hasCurveFrom: false,
+            hasCurveTo: false
+          }
+          console.log(point)
+          console.log(sketchPoint)
+          sketchPathPoints.push(point)
+        })
         // Convert path into something Sketch can handle
         let path:FileFormat.ShapePath = {
           _class: "shapePath",
@@ -38,7 +65,7 @@ glob("assets/**/*.svg", function (er, files) {
           booleanOperation: FileFormat.BooleanOperation.None, // let's not get there yet
           edited: false,
           exportOptions: null,
-          points: [],
+          points: sketchPathPoints,
           isClosed: true, // jump of faith
           frame: null,
           isFixedToViewport: false,
