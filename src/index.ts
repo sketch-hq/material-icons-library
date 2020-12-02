@@ -35,8 +35,8 @@ files.forEach((file) => {
       constrainProportions: false,
       x: 0,
       y: 0,
-      width: 0,
-      height: 0,
+      width: 100,
+      height: 100,
     },
     hasClickThrough: false,
     isFixedToViewport: false,
@@ -130,21 +130,22 @@ files.forEach((file) => {
       booleanOperation: FileFormat.BooleanOperation.NA, // let's not get there yet
       edited: true,
       exportOptions: emptyExportOptions(),
-      points: sketchPathPoints, // TODO: This doesn't work yet
+      points: samplePoints(), // TODO: use points from SVG
       isClosed: true, // jump of faith
       frame: {
         _class: "rect",
         constrainProportions: true,
-        height: 0,
-        width: 0,
+        width: 100,
+        height: 100,
         x: 0,
         y: 0
       },
       isFixedToViewport: false,
       isFlippedHorizontal: false,
       isFlippedVertical: false,
+      style: sampleStyle()
     };
-    // iconGroup.layers.push(path)
+    iconGroup.layers.push(path)
   })
   layerCollection.push(iconGroup)
 })
@@ -269,5 +270,198 @@ function emptyExportOptions():FileFormat.ExportOptions {
     layerOptions: 0,
     shouldTrim: false,
     exportFormats: [],
+  }
+}
+
+function samplePoints():FileFormat.CurvePoint[] {
+  return [
+    {
+      "_class": "curvePoint",
+      "cornerRadius": 0,
+      "curveFrom": "{0.77614237490000004, 1}",
+      "curveMode": 2,
+      "curveTo": "{0.22385762510000001, 1}",
+      "hasCurveFrom": true,
+      "hasCurveTo": true,
+      "point": "{0.5, 1}"
+    },
+    {
+      "_class": "curvePoint",
+      "cornerRadius": 0,
+      "curveFrom": "{1, 0.22385762510000001}",
+      "curveMode": 2,
+      "curveTo": "{1, 0.77614237490000004}",
+      "hasCurveFrom": true,
+      "hasCurveTo": true,
+      "point": "{1, 0.5}"
+    },
+    {
+      "_class": "curvePoint",
+      "cornerRadius": 0,
+      "curveFrom": "{0.22385762510000001, 0}",
+      "curveMode": 2,
+      "curveTo": "{0.77614237490000004, 0}",
+      "hasCurveFrom": true,
+      "hasCurveTo": true,
+      "point": "{0.5, 0}"
+    },
+    {
+      "_class": "curvePoint",
+      "cornerRadius": 0,
+      "curveFrom": "{0, 0.77614237490000004}",
+      "curveMode": 2,
+      "curveTo": "{0, 0.22385762510000001}",
+      "hasCurveFrom": true,
+      "hasCurveTo": true,
+      "point": "{0, 0.5}"
+    }
+  ]
+}
+
+function sampleStyle():FileFormat.Style {
+  return {
+    "_class": "style",
+    "do_objectID": "63CCF63E-20BD-46E7-87A5-8540F7D34036",
+    "endMarkerType": 0,
+    "miterLimit": 10,
+    "startMarkerType": 0,
+    "windingRule": 1,
+    "blur": {
+      "_class": "blur",
+      "isEnabled": false,
+      "center": "{0.5, 0.5}",
+      "motionAngle": 0,
+      "radius": 10,
+      "saturation": 1,
+      "type": 0
+    },
+    "borderOptions": {
+      "_class": "borderOptions",
+      "isEnabled": true,
+      "dashPattern": [],
+      "lineCapStyle": 0,
+      "lineJoinStyle": 0
+    },
+    "borders": [
+      {
+        "_class": "border",
+        "isEnabled": true,
+        "fillType": 0,
+        "color": {
+          "_class": "color",
+          "alpha": 1,
+          "blue": 0.592,
+          "green": 0.592,
+          "red": 0.592
+        },
+        "contextSettings": {
+          "_class": "graphicsContextSettings",
+          "blendMode": 0,
+          "opacity": 1
+        },
+        "gradient": {
+          "_class": "gradient",
+          "elipseLength": 0,
+          "from": "{0.5, 0}",
+          "gradientType": 0,
+          "to": "{0.5, 1}",
+          "stops": [
+            {
+              "_class": "gradientStop",
+              "position": 0,
+              "color": {
+                "_class": "color",
+                "alpha": 1,
+                "blue": 1,
+                "green": 1,
+                "red": 1
+              }
+            },
+            {
+              "_class": "gradientStop",
+              "position": 1,
+              "color": {
+                "_class": "color",
+                "alpha": 1,
+                "blue": 0,
+                "green": 0,
+                "red": 0
+              }
+            }
+          ]
+        },
+        "position": 1,
+        "thickness": 1
+      }
+    ],
+    "colorControls": {
+      "_class": "colorControls",
+      "isEnabled": false,
+      "brightness": 0,
+      "contrast": 1,
+      "hue": 0,
+      "saturation": 1
+    },
+    "contextSettings": {
+      "_class": "graphicsContextSettings",
+      "blendMode": 0,
+      "opacity": 1
+    },
+    "fills": [
+      {
+        "_class": "fill",
+        "isEnabled": true,
+        "fillType": 0,
+        "color": {
+          "_class": "color",
+          "alpha": 1,
+          "blue": 0.847,
+          "green": 0.847,
+          "red": 0.847
+        },
+        "contextSettings": {
+          "_class": "graphicsContextSettings",
+          "blendMode": 0,
+          "opacity": 1
+        },
+        "gradient": {
+          "_class": "gradient",
+          "elipseLength": 0,
+          "from": "{0.5, 0}",
+          "gradientType": 0,
+          "to": "{0.5, 1}",
+          "stops": [
+            {
+              "_class": "gradientStop",
+              "position": 0,
+              "color": {
+                "_class": "color",
+                "alpha": 1,
+                "blue": 1,
+                "green": 1,
+                "red": 1
+              }
+            },
+            {
+              "_class": "gradientStop",
+              "position": 1,
+              "color": {
+                "_class": "color",
+                "alpha": 1,
+                "blue": 0,
+                "green": 0,
+                "red": 0
+              }
+            }
+          ]
+        },
+        "noiseIndex": 0,
+        "noiseIntensity": 0,
+        "patternFillType": 1,
+        "patternTileScale": 1
+      }
+    ],
+    "innerShadows": [],
+    "shadows": []
   }
 }
