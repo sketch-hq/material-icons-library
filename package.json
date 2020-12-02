@@ -2,9 +2,10 @@
   "name": "sketch-synth",
   "version": "1.0.0",
   "description": "A proof of concept tool to generate Sketch files from other file formats",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node index.js",
+    "build": "tsc index.ts",
+    "start": "yarn build && node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,8 +22,11 @@
   },
   "homepage": "https://github.com/sketch-hq/sketch-synth#readme",
   "dependencies": {
+    "@sketch-hq/sketch-file-format-ts": "^5.1.1",
+    "@types/node": "^14.14.10",
     "glob": "^7.1.6",
     "path": "^0.12.7",
-    "svgson": "^4.1.0"
+    "svgson": "^4.1.0",
+    "typescript": "^4.1.2"
   }
 }
