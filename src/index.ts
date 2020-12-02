@@ -13,8 +13,7 @@ import { toFile } from "./to-file";
 
 console.log(`Sketch Synth v${process.env.npm_package_version}`);
 
-// One Artboard per SVG file
-var artboardCollection = []
+var layerCollection = []
 const files = glob.sync("assets/**/*.svg")
 
 files.forEach((file) => {
@@ -30,13 +29,7 @@ files.forEach((file) => {
     do_objectID: uuid().toUpperCase(),
     name: `icon/${layerName}`,
     booleanOperation: FileFormat.BooleanOperation.NA,
-    exportOptions: {
-      _class: "exportOptions",
-      shouldTrim: false,
-      includedLayerIds: [],
-      layerOptions: 0,
-      exportFormats: []
-    },
+    exportOptions: emptyExportOptions(),
     frame: {
       _class: "rect",
       constrainProportions: false,
@@ -67,7 +60,7 @@ files.forEach((file) => {
   //   backgroundColor: null,
   //   hasBackgroundColor: false,
   //   booleanOperation: null,
-  //   exportOptions: null,
+  //   exportOptions: emptyExportOptions(),
   //   frame: {
   //     _class: "rect",
   //     constrainProportions: false,
@@ -98,71 +91,68 @@ files.forEach((file) => {
   //   clippingMaskMode: 0,
   // }
 
-  // json.children.forEach((child) => {
-  //   const svgPath: Path = {
-  //     type: "path",
-  //     d: child.attributes.d,
-  //   };
-  //   let svgPathPoints = toPoints(svgPath);
-  //   let sketchPathPoints = [];
-  //   svgPathPoints.forEach((point) => {
-  //     // Convert SVG Points to Sketch CurvePoints
-  //     let sketchPoint: FileFormat.CurvePoint = {
-  //       _class: "curvePoint",
-  //       point: `{${point.x},${point.y}}`,
-  //       cornerRadius: 0,
-  //       curveFrom: "",
-  //       curveTo: "",
-  //       // curveMode: point.curve.type,
-  //       curveMode: FileFormat.CurveMode.None,
-  //       hasCurveFrom: false,
-  //       hasCurveTo: false,
-  //     };
-  //     // console.log(point);
-  //     // console.log(sketchPoint);
-  //     sketchPathPoints.push(point);
-  //   });
-  //   // Convert path into something Sketch can handle
-  //   let path: FileFormat.ShapePath = {
-  //     _class: "shapePath",
-  //     do_objectID: uuid().toUpperCase(),
-  //     name: layerName,
-  //     nameIsFixed: true,
-  //     pointRadiusBehaviour: null,
-  //     resizingConstraint: null,
-  //     resizingType: null,
-  //     rotation: 0,
-  //     shouldBreakMaskChain: false,
-  //     isVisible: true,
-  //     isLocked: false,
-  //     layerListExpandedType: null,
-  //     booleanOperation: FileFormat.BooleanOperation.None, // let's not get there yet
-  //     edited: false,
-  //     exportOptions: null,
-  //     points: sketchPathPoints,
-  //     isClosed: true, // jump of faith
-  //     frame: {
-  //       _class: "rect",
-  //       constrainProportions: false,
-  //       height: 100,
-  //       width: 100,
-  //       x: 0,
-  //       y: 0
-  //     },
-  //     isFixedToViewport: false,
-  //     isFlippedHorizontal: false,
-  //     isFlippedVertical: false,
-  //   };
-  //   artboard.layers.push(path)
-  // })
-  // artboardCollection.push(artboard)
-  artboardCollection.push(iconGroup)
+  json.children.forEach((child) => {
+    const svgPath: Path = {
+      type: "path",
+      d: child.attributes.d,
+    };
+    let svgPathPoints = toPoints(svgPath);
+    let sketchPathPoints = [];
+    svgPathPoints.forEach((point) => {
+      // Convert SVG Points to Sketch CurvePoints
+      let sketchPoint: FileFormat.CurvePoint = {
+        _class: "curvePoint",
+        point: `{${point.x},${point.y}}`,
+        cornerRadius: 0,
+        curveFrom: `{${point.x},${point.y}}`,
+        curveTo: `{${point.x},${point.y}}`,
+        // curveMode: point.curve.type,
+        curveMode: FileFormat.CurveMode.None,
+        hasCurveFrom: false,
+        hasCurveTo: false,
+      };
+      sketchPathPoints.push(point);
+    });
+    // Convert path into something Sketch can handle
+    let path: FileFormat.ShapePath = {
+      _class: "shapePath",
+      do_objectID: uuid().toUpperCase(),
+      name: layerName,
+      nameIsFixed: true,
+      pointRadiusBehaviour: 1,
+      resizingConstraint: 63,
+      resizingType: FileFormat.ResizeType.Stretch,
+      rotation: 0,
+      shouldBreakMaskChain: false,
+      isVisible: true,
+      isLocked: false,
+      layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+      booleanOperation: FileFormat.BooleanOperation.NA, // let's not get there yet
+      edited: true,
+      exportOptions: emptyExportOptions(),
+      points: sketchPathPoints, // TODO: This doesn't work yet
+      isClosed: true, // jump of faith
+      frame: {
+        _class: "rect",
+        constrainProportions: true,
+        height: 0,
+        width: 0,
+        x: 0,
+        y: 0
+      },
+      isFixedToViewport: false,
+      isFlippedHorizontal: false,
+      isFlippedVertical: false,
+    };
+    // iconGroup.layers.push(path)
+  })
+  layerCollection.push(iconGroup)
 })
-saveFile(artboardCollection)
+saveFile(layerCollection)
 
 // Write file
-function saveFile(artboardCollection) {
-  console.log(`Saving file with ${artboardCollection.length} layers`)
+function saveFile(layerCollection) {
+  console.log(`Saving file with ${layerCollection.length} layers`)
   const pagesAndArtboardsID = uuid().toUpperCase()
   const pageName = "SVG Icons"
   const fileCommit = "6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1"
@@ -208,13 +198,7 @@ const page: FileFormat.Page = {
   resizingType: 0,
   rotation: 0,
   shouldBreakMaskChain: false,
-  exportOptions: {
-    _class: "exportOptions",
-    includedLayerIds: [],
-    layerOptions: 0,
-    shouldTrim: false,
-    exportFormats: [],
-  },
+  exportOptions: emptyExportOptions(),
   frame: {
     _class: "rect",
     constrainProportions: true,
@@ -227,7 +211,7 @@ const page: FileFormat.Page = {
   hasClippingMask: false,
   hasClickThrough: true,
   groupLayout: { _class: "MSImmutableFreeformGroupLayout" },
-  layers: artboardCollection,
+  layers: layerCollection,
   includeInCloudUpload: true,
   horizontalRulerData: { _class: "rulerData", base: 0, guides: [] },
   verticalRulerData: { _class: "rulerData", base: 0, guides: [] },
@@ -275,4 +259,15 @@ const contents: FileFormat.Contents = {
     .catch((err) => {
       console.log(err);
     });
+}
+
+
+function emptyExportOptions():FileFormat.ExportOptions {
+  return {
+    _class: "exportOptions",
+    includedLayerIds: [],
+    layerOptions: 0,
+    shouldTrim: false,
+    exportFormats: [],
+  }
 }
