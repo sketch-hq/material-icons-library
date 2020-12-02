@@ -1,6 +1,8 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 
+import * as Zip from "adm-zip";
 import FileFormat from "@sketch-hq/sketch-file-format-ts";
 
 const toFile = async (
@@ -8,51 +10,42 @@ const toFile = async (
   filepath: string
 ): Promise<void> => {
   await new Promise((resolve): void => {
-    console.log(contents);
-    console.log(`not implemented: writing to ${filepath}`);
+    const sketch = new Zip()
 
-    // TODO: Replace with temporary folder
-    const folder = path.basename(filepath, `.sketch`);
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder);
-
-    // Write all page JSON data.
-    const pagesFolder = path.join(folder, `pages`);
-    if (!fs.existsSync(pagesFolder)) fs.mkdirSync(pagesFolder);
+    // Write pages first and use the resulting paths for the file
+    // references that are stored within the main document.json.
 
     const refs = contents.document.pages.map(
       (page): FileFormat.FileRef => {
-        fs.writeFileSync(
-          path.join(pagesFolder, `${page.do_objectID}.json`),
-          JSON.stringify(page)
+        const p = JSON.stringify(page);
+        sketch.addFile(
+          path.join("pages", `${page.do_objectID}.json`),
+          Buffer.alloc(p.length, p),
+          `page data for: ${page.name}`
         );
 
         return {
           _class: "MSJSONFileReference",
           _ref_class: "MSImmutablePage",
-          _ref: `pages/${page.do_objectID}`
+          _ref: `pages/${page.do_objectID}`,
         };
       }
     );
 
     // Write root level JSON data for document, user and meta data.
-    const data: FileFormat.Document = {
+    const data = {
+      document: JSON.stringify(<FileFormat.Document>{
       ...contents.document,
-      pages: refs
-    };
+      pages: refs}),
+      user: JSON.stringify(contents.user),
+      meta: JSON.stringify(contents.meta),
+    }
 
-    const dst = path.join(folder, `document.json`)
-    fs.writeFileSync(dst, JSON.stringify(data));
+    Object.entries(data).map(([key, val]) => {
+      sketch.addFile(`${key}.json`, Buffer.alloc(val.length, val), `${key} data`)
+    })
 
-    fs.writeFileSync(
-      path.join(folder, `user.json`),
-      JSON.stringify(contents.user)
-    );
-
-    fs.writeFileSync(
-      path.join(folder, `meta.json`),
-      JSON.stringify(contents.meta)
-    );
-
+    sketch.writeZip(filepath)
     resolve(true);
   });
 };

@@ -4,8 +4,8 @@
   "description": "A proof of concept tool to generate Sketch files from other file formats",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc src/index.ts",
-    "start": "yarn build && node index.js",
+    "build": "tsc --outDir dist src/index.ts",
+    "start": "yarn build && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/sketch-hq/sketch-synth#readme",
   "dependencies": {
+    "adm-zip": "^0.5.1",
     "glob": "^7.1.6",
     "path": "^0.12.7",
     "svgson": "^4.1.0",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@sketch-hq/sketch-file-format-ts": "^5.1.1",
+    "@types/adm-zip": "^0.4.33",
     "@types/glob": "^7.1.3",
     "@types/node": "^14.14.10",
     "@types/uuid": "^8.3.0",

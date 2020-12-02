@@ -1,7 +1,8 @@
 import fs = require("fs");
 import path = require("path");
 import glob = require("glob");
-import uuid = require("uuid");
+
+import { v4 as uuid } from "uuid";
 
 import { parse, stringify } from "svgson";
 import { Circle, Path, toPoints } from "svg-points";
@@ -51,7 +52,7 @@ glob("../assets/**/*.svg", function (err, files) {
         // Convert path into something Sketch can handle
         let path: FileFormat.ShapePath = {
           _class: "shapePath",
-          do_objectID: uuid.v4(),
+          do_objectID: uuid(),
           name: layerName,
           nameIsFixed: true,
           pointRadiusBehaviour: null,
@@ -85,7 +86,7 @@ const meta: FileFormat.Meta = {
   pagesAndArtboards: {
     "DE768058-D22A-4C6E-A641-0B51C72599D2": { name: "Page 1", artboards: {} },
   },
-  version: 123,
+  version: 131,
   fonts: [],
   compatibilityVersion: 99,
   app: FileFormat.BundleId.Internal,
@@ -100,8 +101,8 @@ const meta: FileFormat.Meta = {
     version: 123,
     variant: "NONAPPSTORE",
   },
-  saveHistory: ["NONAPPSTORE.92452"],
-  appVersion: "63.1",
+  saveHistory: [],
+  appVersion: "70.1",
   build: 92452,
 };
 
