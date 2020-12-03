@@ -15,79 +15,64 @@ console.log(`Sketch Synth v${process.env.npm_package_version}`)
 var layerCollection = []
 const files = glob.sync('assets/**/*.svg')
 
-files.forEach(file => {
+files.forEach((file, index) => {
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
   const layerName = path.basename(file, '.svg')
   const json = parseSync(svgData)
   const width = json.attributes.width
   const height = json.attributes.height
 
-  var iconGroup: FileFormat.Group = {
-    _class: 'group',
+  var artboard: FileFormat.Artboard = {
+    _class: 'artboard',
     do_objectID: uuid().toUpperCase(),
-    name: `icon/${layerName}`,
-    booleanOperation: FileFormat.BooleanOperation.NA,
+    name: `Artboard ${layerName}`,
+    backgroundColor: {
+      _class: 'color',
+      alpha: 1,
+      red: 1,
+      green: 1,
+      blue: 1,
+    },
+    hasBackgroundColor: true,
+    booleanOperation: FileFormat.BooleanOperation.None,
     exportOptions: emptyExportOptions(),
     frame: {
       _class: 'rect',
       constrainProportions: false,
-      x: 0,
+      width: parseInt(width),
+      height: parseInt(height),
+      x: index * 100,
       y: 0,
-      width: 100,
-      height: 100,
     },
     hasClickThrough: false,
+    includeBackgroundColorInExport: false,
+    includeInCloudUpload: true,
     isFixedToViewport: false,
     isFlippedHorizontal: false,
     isFlippedVertical: false,
+    isFlowHome: false,
     isLocked: false,
     isVisible: true,
-    layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
     layers: [],
-    nameIsFixed: false,
-    resizingConstraint: 0,
-    resizingType: FileFormat.ResizeType.Resize,
+    nameIsFixed: true,
+    resizesContent: false,
+    resizingConstraint: 63,
+    resizingType: FileFormat.ResizeType.Stretch,
     rotation: 0,
     shouldBreakMaskChain: false,
+    horizontalRulerData: {
+      _class: 'rulerData',
+      base: 0,
+      guides: [],
+    },
+    verticalRulerData: {
+      _class: 'rulerData',
+      base: 0,
+      guides: [],
+    },
+    clippingMaskMode: 0,
   }
-
-  // var artboard:FileFormat.Artboard = {
-  //   _class: "artboard",
-  //   do_objectID: uuid().toUpperCase(),
-  //   name: layerName,
-  //   backgroundColor: null,
-  //   hasBackgroundColor: false,
-  //   booleanOperation: null,
-  //   exportOptions: emptyExportOptions(),
-  //   frame: {
-  //     _class: "rect",
-  //     constrainProportions: false,
-  //     width: parseInt(width),
-  //     height: parseInt(height),
-  //     x: 0,
-  //     y: 0
-  //   },
-  //   hasClickThrough: false,
-  //   horizontalRulerData: null,
-  //   includeBackgroundColorInExport: false,
-  //   includeInCloudUpload: true,
-  //   isFixedToViewport: false,
-  //   isFlippedHorizontal: false,
-  //   isFlippedVertical: false,
-  //   isFlowHome: false,
-  //   isLocked: false,
-  //   isVisible: true,
-  //   layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
-  //   layers: [iconGroup],
-  //   nameIsFixed: true,
-  //   resizesContent: false,
-  //   resizingConstraint: null,
-  //   resizingType: null,
-  //   rotation: 0,
-  //   shouldBreakMaskChain: false,
-  //   verticalRulerData: null,
-  //   clippingMaskMode: 0,
-  // }
 
   json.children.forEach(child => {
     const svgPath: Path = {
@@ -125,7 +110,7 @@ files.forEach(file => {
       isVisible: true,
       isLocked: false,
       layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
-      booleanOperation: FileFormat.BooleanOperation.NA, // let's not get there yet
+      booleanOperation: FileFormat.BooleanOperation.None, // let's not get there yet
       edited: true,
       exportOptions: emptyExportOptions(),
       points: samplePoints(), // TODO: use points from SVG
@@ -143,9 +128,11 @@ files.forEach(file => {
       isFlippedVertical: false,
       style: sampleStyle(),
     }
-    iconGroup.layers.push(path)
+    // iconGroup.layers.push(path)
+    artboard.layers.push(path)
   })
-  layerCollection.push(iconGroup)
+  // layerCollection.push(iconGroup)
+  layerCollection.push(artboard)
 })
 saveFile(layerCollection)
 
@@ -153,7 +140,7 @@ saveFile(layerCollection)
 function saveFile(layerCollection) {
   console.log(`Saving file with ${layerCollection.length} layers`)
   const pagesAndArtboardsID = uuid().toUpperCase()
-  const pageName = 'SVG Icons'
+  const pageName = 'Symbols'
   const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
 
   const meta: FileFormat.Meta = {
@@ -194,7 +181,7 @@ function saveFile(layerCollection) {
     layerListExpandedType: 0,
     nameIsFixed: false,
     resizingConstraint: 63,
-    resizingType: 0,
+    resizingType: FileFormat.ResizeType.Stretch,
     rotation: 0,
     shouldBreakMaskChain: false,
     exportOptions: emptyExportOptions(),
@@ -461,4 +448,39 @@ function sampleStyle(): FileFormat.Style {
     innerShadows: [],
     shadows: [],
   }
+}
+
+function emptyGroup(
+  groupName: string,
+  frame?: FileFormat.Rect
+): FileFormat.Group {
+  var emptyGroup: FileFormat.Group = {
+    _class: 'group',
+    do_objectID: uuid().toUpperCase(),
+    name: groupName,
+    booleanOperation: FileFormat.BooleanOperation.None,
+    exportOptions: emptyExportOptions(),
+    frame: {
+      _class: 'rect',
+      constrainProportions: false,
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    },
+    hasClickThrough: false,
+    isFixedToViewport: false,
+    isFlippedHorizontal: false,
+    isFlippedVertical: false,
+    isLocked: false,
+    isVisible: true,
+    layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+    layers: [],
+    nameIsFixed: false,
+    resizingConstraint: 63,
+    resizingType: FileFormat.ResizeType.Stretch,
+    rotation: 0,
+    shouldBreakMaskChain: false,
+  }
+  return emptyGroup
 }
