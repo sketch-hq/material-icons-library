@@ -17,36 +17,35 @@ const files = glob.sync('assets/**/*.svg')
 
 files.forEach((file, index) => {
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
-  const layerName = path.basename(file, '.svg')
+  const svgName = path.basename(file, '.svg')
   const json = parseSync(svgData)
-  const width = json.attributes.width
-  const height = json.attributes.height
 
-  var artboard: FileFormat.Artboard = {
-    _class: 'artboard',
+  const width: number = parseInt(json.attributes.width) || 100
+  const height: number = parseInt(json.attributes.height) || 100
+
+  var artboard: FileFormat.SymbolMaster = {
+    _class: 'symbolMaster',
     do_objectID: uuid().toUpperCase(),
-    name: `Artboard ${layerName}`,
-    backgroundColor: {
-      _class: 'color',
-      alpha: 1,
-      red: 1,
-      green: 1,
-      blue: 1,
-    },
-    hasBackgroundColor: true,
+    symbolID: uuid().toUpperCase(),
+    name: svgName,
+    backgroundColor: colorWhite(),
+    hasBackgroundColor: false,
     booleanOperation: FileFormat.BooleanOperation.None,
-    exportOptions: emptyExportOptions(),
+    exportOptions: emptyExportOptions(), // TODO: Make SVG Artboards exportable by default?
     frame: {
       _class: 'rect',
       constrainProportions: false,
-      width: parseInt(width),
-      height: parseInt(height),
+      width: width, // Use the SVG dimensions
+      height: height,
       x: index * 100,
       y: 0,
     },
     hasClickThrough: false,
     includeBackgroundColorInExport: false,
+    includeBackgroundColorInInstance: false,
     includeInCloudUpload: true,
+    allowsOverrides: false,
+    overrideProperties: [],
     isFixedToViewport: false,
     isFlippedHorizontal: false,
     isFlippedVertical: false,
@@ -100,7 +99,7 @@ files.forEach((file, index) => {
     let path: FileFormat.ShapePath = {
       _class: 'shapePath',
       do_objectID: uuid().toUpperCase(),
-      name: layerName,
+      name: 'Path',
       nameIsFixed: true,
       pointRadiusBehaviour: 1,
       resizingConstraint: 63,
@@ -139,14 +138,14 @@ saveFile(layerCollection)
 // Write file
 function saveFile(layerCollection) {
   console.log(`Saving file with ${layerCollection.length} layers`)
-  const pagesAndArtboardsID = uuid().toUpperCase()
-  const pageName = 'Symbols'
+  // const pagesAndArtboardsID = uuid().toUpperCase()
+  // const pageName = 'Symbols'
   const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
 
   const meta: FileFormat.Meta = {
     commit: fileCommit,
     pagesAndArtboards: {
-      pagesAndArtboardsID: { name: pageName, artboards: {} },
+      //   pagesAndArtboardsID: { name: pageName, artboards: {} },
     },
     version: 131,
     fonts: [],
@@ -168,42 +167,9 @@ function saveFile(layerCollection) {
     build: 92452,
   }
 
-  const page: FileFormat.Page = {
-    _class: 'page',
-    do_objectID: pagesAndArtboardsID,
-    name: pageName,
-    booleanOperation: -1,
-    isFixedToViewport: false,
-    isFlippedHorizontal: false,
-    isFlippedVertical: false,
-    isLocked: false,
-    isVisible: true,
-    layerListExpandedType: 0,
-    nameIsFixed: false,
-    resizingConstraint: 63,
-    resizingType: FileFormat.ResizeType.Stretch,
-    rotation: 0,
-    shouldBreakMaskChain: false,
-    exportOptions: emptyExportOptions(),
-    frame: {
-      _class: 'rect',
-      constrainProportions: true,
-      height: 0,
-      width: 0,
-      x: 0,
-      y: 0,
-    },
-    clippingMaskMode: 0,
-    hasClippingMask: false,
-    hasClickThrough: true,
-    groupLayout: { _class: 'MSImmutableFreeformGroupLayout' },
-    layers: layerCollection,
-    includeInCloudUpload: true,
-    horizontalRulerData: { _class: 'rulerData', base: 0, guides: [] },
-    verticalRulerData: { _class: 'rulerData', base: 0, guides: [] },
-  }
-
-  // console.log(page)
+  const blankPage: FileFormat.Page = emptyPage('Blank')
+  const symbolsPage: FileFormat.Page = emptyPage('Symbols')
+  symbolsPage.layers = layerCollection
 
   const user: FileFormat.User = {
     document: { pageListHeight: 85, pageListCollapsed: 0 },
@@ -232,7 +198,7 @@ function saveFile(layerCollection) {
       layerStyles: { _class: 'sharedStyleContainer', objects: [] },
       layerSymbols: { _class: 'symbolContainer', objects: [] },
       layerTextStyles: { _class: 'sharedTextStyleContainer', objects: [] },
-      pages: [page],
+      pages: [blankPage, symbolsPage],
     },
     meta,
     user,
@@ -247,6 +213,7 @@ function saveFile(layerCollection) {
     })
 }
 
+// Utility functions to generate various Sketch elements
 function emptyExportOptions(): FileFormat.ExportOptions {
   return {
     _class: 'exportOptions',
@@ -353,24 +320,12 @@ function sampleStyle(): FileFormat.Style {
             {
               _class: 'gradientStop',
               position: 0,
-              color: {
-                _class: 'color',
-                alpha: 1,
-                blue: 1,
-                green: 1,
-                red: 1,
-              },
+              color: colorWhite(),
             },
             {
               _class: 'gradientStop',
               position: 1,
-              color: {
-                _class: 'color',
-                alpha: 1,
-                blue: 0,
-                green: 0,
-                red: 0,
-              },
+              color: colorBlack(),
             },
           ],
         },
@@ -418,24 +373,12 @@ function sampleStyle(): FileFormat.Style {
             {
               _class: 'gradientStop',
               position: 0,
-              color: {
-                _class: 'color',
-                alpha: 1,
-                blue: 1,
-                green: 1,
-                red: 1,
-              },
+              color: colorWhite(),
             },
             {
               _class: 'gradientStop',
               position: 1,
-              color: {
-                _class: 'color',
-                alpha: 1,
-                blue: 0,
-                green: 0,
-                red: 0,
-              },
+              color: colorBlack(),
             },
           ],
         },
@@ -483,4 +426,62 @@ function emptyGroup(
     shouldBreakMaskChain: false,
   }
   return emptyGroup
+}
+
+function emptyPage(pageName: string, id?: string): FileFormat.Page {
+  return {
+    _class: 'page',
+    do_objectID: id || uuid(),
+    name: pageName,
+    booleanOperation: -1,
+    isFixedToViewport: false,
+    isFlippedHorizontal: false,
+    isFlippedVertical: false,
+    isLocked: false,
+    isVisible: true,
+    layerListExpandedType: 0,
+    nameIsFixed: false,
+    resizingConstraint: 63,
+    resizingType: FileFormat.ResizeType.Stretch,
+    rotation: 0,
+    shouldBreakMaskChain: false,
+    exportOptions: emptyExportOptions(),
+    frame: {
+      _class: 'rect',
+      constrainProportions: true,
+      height: 0,
+      width: 0,
+      x: 0,
+      y: 0,
+    },
+    clippingMaskMode: 0,
+    hasClippingMask: false,
+    hasClickThrough: true,
+    groupLayout: { _class: 'MSImmutableFreeformGroupLayout' },
+    layers: [],
+    includeInCloudUpload: true,
+    horizontalRulerData: { _class: 'rulerData', base: 0, guides: [] },
+    verticalRulerData: { _class: 'rulerData', base: 0, guides: [] },
+  }
+}
+
+function colorWhite(): FileFormat.Color {
+  let color: FileFormat.Color = {
+    _class: 'color',
+    alpha: 1,
+    red: 1,
+    green: 1,
+    blue: 1,
+  }
+  return color
+}
+function colorBlack(): FileFormat.Color {
+  let color: FileFormat.Color = {
+    alpha: 1,
+    _class: 'color',
+    red: 0,
+    green: 0,
+    blue: 0,
+  }
+  return color
 }
