@@ -1,0 +1,49 @@
+<svg width="500" height="800">
+  <path d="M1 1 h10 v10 h-10z" />
+  <circle id="oval" cx="30" cy="30" r="15" stroke="red" stroke-width="3" fill="orange" />
+  <rect x="50" y="50" width="100" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)" />
+  <rect x="180" y="20" width="100" height="100" rx="20" opacity="0.5" />
+  <ellipse cx="250" cy="50" rx="50" ry="20" fill="aliceblue" stroke="darkslateblue" />
+  <g transform="rotate(-10,0,0)">
+    <line x1="80" x2="120" y1="20" y2="100" stroke-width="5" stroke="#ff6600" />
+    <polygon id="triangle" points="100,100,100,200,200,200" fill="url(#horizontal-gradient)" />
+  </g>
+  <polyline points="200,100,250,200,250,150,300,150" stroke="red" fill="none" />
+  <path id="bezier-curve" d="M 100 350 q 150 -300 300 0" stroke="blue" stroke-width="5" fill="none" />
+
+  <g font-size="30" font-family="sans-serif" fill="black" stroke="none" text-anchor="middle">
+    <text x="100" y="350" dx="-30">A</text>
+    <text x="250" y="250">Bee</text>
+    <text x="400" y="350" dx="30">C</text>
+  </g>
+  <text x="300" y="120" style="fill:red;">Several lines:
+    <tspan x="300" y="145">First line.</tspan>
+    <tspan x="300" y="170">Second line.</tspan>
+  </text>
+  <g fill="none" stroke="black" stroke-width="6">
+    <path stroke-linecap="butt" d="M100 420 l215 0" />
+    <path stroke-linecap="round" d="M100 440 l215 0" />
+    <path stroke-linecap="square" d="M100 460 l215 0" />
+  </g>
+  <g fill="none" stroke="black" stroke-width="4">
+    <path stroke-dasharray="5,5" d="M100 520 l215 0" />
+    <path stroke-dasharray="10,10" d="M100 540 l215 0" />
+    <path stroke-dasharray="20,10,5,5,5,10" d="M100 560 l215 0" />
+  </g>
+  <rect x="350" y="400" width="100" height="100" fill="url(#vertical-gradient)" />
+  <rect x="350" y="520" width="100" height="100" fill="url(#radial-gradient)" />
+  <defs>
+    <linearGradient id="horizontal-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vertical-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="radial-gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:0" />
+      <stop offset="100%" style="stop-color:rgb(0,0,255);stop-opacity:1" />
+    </radialGradient>
+  </defs>
+</svg>
