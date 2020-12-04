@@ -25,64 +25,27 @@ files.forEach((file, index) => {
   const width: number = parseInt(json.attributes.width) || 100
   const height: number = parseInt(json.attributes.height) || 100
 
-  var artboard: FileFormat.SymbolMaster = {
-    _class: 'symbolMaster',
-    do_objectID: objid(),
-    symbolID: objid(),
-    name: svgName,
-    backgroundColor: colorWhite(),
-    hasBackgroundColor: false,
-    booleanOperation: FileFormat.BooleanOperation.None,
-    exportOptions: emptyExportOptions(), // TODO: Make SVG Artboards exportable by default?
-    frame: {
-      _class: 'rect',
-      constrainProportions: false,
-      width: width, // Use the SVG dimensions
-      height: height,
-      x: index * 100,
-      y: 0,
-    },
-    hasClickThrough: false,
-    includeBackgroundColorInExport: false,
-    includeBackgroundColorInInstance: false,
-    includeInCloudUpload: true,
-    allowsOverrides: false,
-    overrideProperties: [],
-    isFixedToViewport: false,
-    isFlippedHorizontal: false,
-    isFlippedVertical: false,
-    isFlowHome: false,
-    isLocked: false,
-    isVisible: true,
-    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
-    layers: [],
-    nameIsFixed: true,
-    resizesContent: false,
-    resizingConstraint: 63,
-    resizingType: FileFormat.ResizeType.Stretch,
-    rotation: 0,
-    shouldBreakMaskChain: false,
-    horizontalRulerData: {
-      _class: 'rulerData',
-      base: 0,
-      guides: [],
-    },
-    verticalRulerData: {
-      _class: 'rulerData',
-      base: 0,
-      guides: [],
-    },
-    clippingMaskMode: 0,
-  }
-
+  var artboard: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
+    svgName,
+    width,
+    height,
+    index * 100,
+    0
+  )
   json.children.forEach(child => {
+    // This is only true for children of type `path`, of course
     const svgPath: Path = {
       type: 'path',
       d: child.attributes.d,
     }
     let svgPathPoints = toPoints(svgPath)
+    console.log(`Parsing "${svgName}.svg"`)
+    console.log(svgPathPoints)
+
     let sketchPathPoints = []
     svgPathPoints.forEach(point => {
+      console.log(point)
+
       // Convert SVG Points to Sketch CurvePoints
       let sketchPoint: FileFormat.CurvePoint = {
         _class: 'curvePoint',
@@ -113,7 +76,7 @@ files.forEach((file, index) => {
       layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
       booleanOperation: FileFormat.BooleanOperation.None, // let's not get there yet
       edited: true,
-      exportOptions: emptyExportOptions(),
+      exportOptions: sketchBlocks.emptyExportOptions(),
       points: samplePoints(), // TODO: use points from SVG
       isClosed: true, // jump of faith
       frame: {
@@ -169,8 +132,8 @@ function saveFile(layerCollection) {
     build: 92452,
   }
 
-  const blankPage: FileFormat.Page = emptyPage('Blank')
-  const symbolsPage: FileFormat.Page = emptyPage('Symbols')
+  const blankPage: FileFormat.Page = sketchBlocks.emptyPage('Blank')
+  const symbolsPage: FileFormat.Page = sketchBlocks.emptyPage('Symbols')
   symbolsPage.layers = layerCollection
 
   const user: FileFormat.User = {
@@ -216,15 +179,6 @@ function saveFile(layerCollection) {
 }
 
 // Utility functions to generate various Sketch elements
-function emptyExportOptions(): FileFormat.ExportOptions {
-  return {
-    _class: 'exportOptions',
-    includedLayerIds: [],
-    layerOptions: 0,
-    shouldTrim: false,
-    exportFormats: [],
-  }
-}
 
 function samplePoints(): FileFormat.CurvePoint[] {
   return [
@@ -322,7 +276,7 @@ function sampleStyle(): FileFormat.Style {
             {
               _class: 'gradientStop',
               position: 0,
-              color: colorWhite(),
+              color: sketchBlocks.colorWhite(),
             },
             {
               _class: 'gradientStop',
@@ -375,7 +329,7 @@ function sampleStyle(): FileFormat.Style {
             {
               _class: 'gradientStop',
               position: 0,
-              color: colorWhite(),
+              color: sketchBlocks.colorWhite(),
             },
             {
               _class: 'gradientStop',
@@ -393,87 +347,4 @@ function sampleStyle(): FileFormat.Style {
     innerShadows: [],
     shadows: [],
   }
-}
-
-function emptyGroup(
-  groupName: string,
-  frame?: FileFormat.Rect
-): FileFormat.Group {
-  var emptyGroup: FileFormat.Group = {
-    _class: 'group',
-    do_objectID: objid(),
-    name: groupName,
-    booleanOperation: FileFormat.BooleanOperation.None,
-    exportOptions: emptyExportOptions(),
-    frame: {
-      _class: 'rect',
-      constrainProportions: false,
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100,
-    },
-    hasClickThrough: false,
-    isFixedToViewport: false,
-    isFlippedHorizontal: false,
-    isFlippedVertical: false,
-    isLocked: false,
-    isVisible: true,
-    layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
-    layers: [],
-    nameIsFixed: false,
-    resizingConstraint: 63,
-    resizingType: FileFormat.ResizeType.Stretch,
-    rotation: 0,
-    shouldBreakMaskChain: false,
-  }
-  return emptyGroup
-}
-
-function emptyPage(pageName: string, id?: string): FileFormat.Page {
-  return {
-    _class: 'page',
-    do_objectID: id || uuid(),
-    name: pageName,
-    booleanOperation: -1,
-    isFixedToViewport: false,
-    isFlippedHorizontal: false,
-    isFlippedVertical: false,
-    isLocked: false,
-    isVisible: true,
-    layerListExpandedType: 0,
-    nameIsFixed: false,
-    resizingConstraint: 63,
-    resizingType: FileFormat.ResizeType.Stretch,
-    rotation: 0,
-    shouldBreakMaskChain: false,
-    exportOptions: emptyExportOptions(),
-    frame: {
-      _class: 'rect',
-      constrainProportions: true,
-      height: 0,
-      width: 0,
-      x: 0,
-      y: 0,
-    },
-    clippingMaskMode: 0,
-    hasClippingMask: false,
-    hasClickThrough: true,
-    groupLayout: { _class: 'MSImmutableFreeformGroupLayout' },
-    layers: [],
-    includeInCloudUpload: true,
-    horizontalRulerData: { _class: 'rulerData', base: 0, guides: [] },
-    verticalRulerData: { _class: 'rulerData', base: 0, guides: [] },
-  }
-}
-
-function colorWhite(): FileFormat.Color {
-  let color: FileFormat.Color = {
-    _class: 'color',
-    alpha: 1,
-    red: 1,
-    green: 1,
-    blue: 1,
-  }
-  return color
 }
