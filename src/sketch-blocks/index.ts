@@ -3,27 +3,32 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { v4 as uuid } from 'uuid'
 
 const sketchBlocks = {
-  colorBlack: function (): FileFormat.Color {
-    let color: FileFormat.Color = {
-      alpha: 1,
+  color: (
+    r: FileFormat.UnitInterval,
+    g: FileFormat.UnitInterval,
+    b: FileFormat.UnitInterval,
+    alpha?: FileFormat.UnitInterval,
+    swatchID?: FileFormat.Uuid
+  ): FileFormat.Color => {
+    return {
+      alpha: alpha || 1,
       _class: 'color',
-      red: 0,
-      green: 0,
-      blue: 0,
+      red: r,
+      green: g,
+      blue: b,
+      swatchID: swatchID || null,
     }
-    return color
   },
-  colorWhite: function (): FileFormat.Color {
-    let color: FileFormat.Color = {
-      _class: 'color',
-      alpha: 1,
-      red: 1,
-      green: 1,
-      blue: 1,
-    }
-    return color
+  colorBlack: (): FileFormat.Color => {
+    return sketchBlocks.color(0, 0, 0)
   },
-  emptyExportOptions: function (): FileFormat.ExportOptions {
+  colorWhite: (): FileFormat.Color => {
+    return sketchBlocks.color(1, 1, 1)
+  },
+  colorGrey: (): FileFormat.Color => {
+    return sketchBlocks.color(0.5, 0.5, 0.5)
+  },
+  emptyExportOptions: (): FileFormat.ExportOptions => {
     return {
       _class: 'exportOptions',
       includedLayerIds: [],
@@ -32,10 +37,10 @@ const sketchBlocks = {
       exportFormats: [],
     }
   },
-  emptyGroup: function (
+  emptyGroup: (
     groupName: string,
     frame?: FileFormat.Rect
-  ): FileFormat.Group {
+  ): FileFormat.Group => {
     var emptyGroup: FileFormat.Group = {
       _class: 'group',
       do_objectID: uuid(),
@@ -66,13 +71,13 @@ const sketchBlocks = {
     }
     return emptyGroup
   },
-  emptySymbolMaster: function (
+  emptySymbolMaster: (
     name: string,
     width?: number,
     height?: number,
     x?: number,
     y?: number
-  ): FileFormat.SymbolMaster {
+  ): FileFormat.SymbolMaster => {
     return {
       _class: 'symbolMaster',
       do_objectID: uuid(),
@@ -124,7 +129,7 @@ const sketchBlocks = {
     }
   },
 
-  emptyPage: function (pageName: string, id?: string): FileFormat.Page {
+  emptyPage: (pageName: string, id?: FileFormat.Uuid): FileFormat.Page => {
     return {
       _class: 'page',
       do_objectID: id || uuid(),
