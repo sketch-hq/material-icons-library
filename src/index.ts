@@ -34,36 +34,48 @@ files.forEach((file, index) => {
   )
   json.children.forEach(child => {
     // This is only true for children of type `path`, of course
-    const svgPath: Path = {
-      type: 'path',
-      d: child.attributes.d,
+    console.log(`Translating child:`)
+    console.log(child)
+    switch (child.name) {
+      case 'path':
+        const svgPath: Path = {
+          type: 'path',
+          d: child.attributes.d,
+        }
+        let svgPathPoints = toPoints(svgPath)
+        console.log(`Parsing "${svgName}.svg"`)
+        console.log(svgPathPoints)
+
+        let sketchPathPoints = []
+        svgPathPoints.forEach(point => {
+          console.log(point)
+
+          // Convert SVG Points to Sketch CurvePoints
+          let sketchPoint: FileFormat.CurvePoint = {
+            _class: 'curvePoint',
+            point: `{${point.x},${point.y}}`,
+            cornerRadius: 0,
+            curveFrom: `{${point.x},${point.y}}`,
+            curveTo: `{${point.x},${point.y}}`,
+            // curveMode: point.curve.type,
+            curveMode: FileFormat.CurveMode.None,
+            hasCurveFrom: false,
+            hasCurveTo: false,
+          }
+          sketchPathPoints.push(point)
+        })
+        // Convert path into something Sketch can handle
+        let path: FileFormat.ShapePath = sketchBlocks.emptyShapePath()
+        // iconGroup.layers.push(path)
+        artboard.layers.push(path)
+        break
+
+      default:
+        console.warn(
+          `We don't know what to do with '${child.name}' elements yet\nTry again in a few days`
+        )
+        break
     }
-    let svgPathPoints = toPoints(svgPath)
-    console.log(`Parsing "${svgName}.svg"`)
-    console.log(svgPathPoints)
-
-    let sketchPathPoints = []
-    svgPathPoints.forEach(point => {
-      console.log(point)
-
-      // Convert SVG Points to Sketch CurvePoints
-      let sketchPoint: FileFormat.CurvePoint = {
-        _class: 'curvePoint',
-        point: `{${point.x},${point.y}}`,
-        cornerRadius: 0,
-        curveFrom: `{${point.x},${point.y}}`,
-        curveTo: `{${point.x},${point.y}}`,
-        // curveMode: point.curve.type,
-        curveMode: FileFormat.CurveMode.None,
-        hasCurveFrom: false,
-        hasCurveTo: false,
-      }
-      sketchPathPoints.push(point)
-    })
-    // Convert path into something Sketch can handle
-    let path: FileFormat.ShapePath = sketchBlocks.emptyShapePath()
-    // iconGroup.layers.push(path)
-    artboard.layers.push(path)
   })
   // layerCollection.push(iconGroup)
   layerCollection.push(artboard)
