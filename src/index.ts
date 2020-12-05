@@ -19,6 +19,7 @@ const files = glob.sync('assets/**/*.svg')
 files.forEach((file, index) => {
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
   const svgName = path.basename(file, '.svg')
+  console.log(`\n\nConverting ${svgName}`)
   const json = parseSync(svgData)
 
   const width: number = parseInt(json.attributes.width) || 100
@@ -32,10 +33,52 @@ files.forEach((file, index) => {
     0
   )
   json.children.forEach((child, index) => {
-    // This is only true for children of type `path`, of course
-    console.log(`Translating child:`)
-    console.log(child)
+    // console.log(child)
     switch (child.name) {
+      case 'path':
+        // https://www.w3.org/TR/SVG2/paths.html#PathElement
+        // d | pathLength (optional) | id | style | class |
+        let pathDefaultAttributes = {
+          d: '',
+          id: `path-${index}`,
+        }
+        let attributes = { ...pathDefaultAttributes, ...child.attributes }
+        // style | script | mask | marker | clipPath | pattern | linearGradient | radialGradient | pattern
+        let content = child.children
+        console.log(attributes)
+        console.log(content)
+
+        // const svgPath: Path = {
+        //   type: 'path',
+        //   d: child.attributes.d,
+        // }
+        // let svgPathPoints = toPoints(svgPath)
+        // console.log(`Parsing "${svgName}.svg"`)
+        // console.log(svgPathPoints)
+
+        // let sketchPathPoints = []
+        // svgPathPoints.forEach(point => {
+        //   console.log(point)
+
+        //   // Convert SVG Points to Sketch CurvePoints
+        //   let sketchPoint: FileFormat.CurvePoint = {
+        //     _class: 'curvePoint',
+        //     point: `{${point.x},${point.y}}`,
+        //     cornerRadius: 0,
+        //     curveFrom: `{${point.x},${point.y}}`,
+        //     curveTo: `{${point.x},${point.y}}`,
+        //     // curveMode: point.curve.type,
+        //     curveMode: FileFormat.CurveMode.None,
+        //     hasCurveFrom: false,
+        //     hasCurveTo: false,
+        //   }
+        //   sketchPathPoints.push(point)
+        // })
+
+        let sketchPath = sketchBlocks.emptyShapePath()
+        artboard.layers.push(sketchPath)
+        break
+
       case 'defs':
         // These are Styles and other reusable elements.
         // It can contain any element inside it, but by now we'll only worry about Style-like content:
@@ -47,18 +90,21 @@ files.forEach((file, index) => {
             case 'linearGradient':
               // https://www.w3.org/TR/SVG/pservers.html#LinearGradientElement
               // ## Parse Attributes
-              let attributes = {
-                id: def.attributes.id || `linear-gradient-${index}`, // id, x1, y1, x2, y2, gradientUnits, gradientTransform, spreadMethod, href
+              let linearGradientDefaults = {
+                id: `linear-gradient-${index}`,
                 // TODO: These values are actually of the <length> type. So they can come in all sorts of units. Find a proper parser for that (check https://github.com/reworkcss/css)
-                x1: def.attributes.x1 || 0,
-                x2: def.attributes.x2 || 0,
-                y1: def.attributes.y1 || 100,
-                y2: def.attributes.y2 || 0,
-                gradientUnits:
-                  def.attributes.gradientUnits || 'objectBoundingBox', // 'userSpaceOnUse' | 'objectBoundingBox'
-                gradientTransform: def.attributes.gradientTransform || {}, // Ignored by now
-                spreadMethod: def.attributes.spreadMethod || 'pad', // 'pad' | 'reflect' | 'repeat'
-                href: def.attributes.href || '',
+                x1: 0,
+                x2: 0,
+                y1: 100,
+                y2: 0,
+                gradientUnits: 'objectBoundingBox',
+                gradientTransform: '',
+                spreadMethod: 'pad',
+                href: '',
+              }
+              let attributes = {
+                ...linearGradientDefaults,
+                ...child.attributes,
               }
               // ## Parse content
               // Children of a linearGradient element can be any of:
@@ -89,41 +135,10 @@ files.forEach((file, index) => {
           }
         })
         break
-      case 'path':
-        const svgPath: Path = {
-          type: 'path',
-          d: child.attributes.d,
-        }
-        let svgPathPoints = toPoints(svgPath)
-        console.log(`Parsing "${svgName}.svg"`)
-        console.log(svgPathPoints)
-
-        let sketchPathPoints = []
-        svgPathPoints.forEach(point => {
-          console.log(point)
-
-          // Convert SVG Points to Sketch CurvePoints
-          let sketchPoint: FileFormat.CurvePoint = {
-            _class: 'curvePoint',
-            point: `{${point.x},${point.y}}`,
-            cornerRadius: 0,
-            curveFrom: `{${point.x},${point.y}}`,
-            curveTo: `{${point.x},${point.y}}`,
-            // curveMode: point.curve.type,
-            curveMode: FileFormat.CurveMode.None,
-            hasCurveFrom: false,
-            hasCurveTo: false,
-          }
-          sketchPathPoints.push(point)
-        })
-
-        let sketchPath = sketchBlocks.emptyShapePath()
-        artboard.layers.push(sketchPath)
-        break
 
       default:
         console.warn(
-          `⚠️ We don't know what to do with '${child.name}' elements yet\nTry again in a few days`
+          `⚠️  We don't know what to do with '${child.name}' elements yet\nTry again in a few days`
         )
         // Insert a dummy element
         artboard.layers.push(
