@@ -5,13 +5,21 @@ import glob = require('glob')
 import { v4 as uuid } from 'uuid'
 
 import { parseSync, stringify } from 'svgson'
-import { Circle, Path, toPoints } from 'svg-points'
+import {
+  Circle,
+  Path,
+  toPoints,
+  Curve,
+  CurveArc,
+  CurveCubic,
+  CurveQuadratic,
+} from 'svg-points'
 
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { toFile } from './to-file'
 import { sketchBlocks } from './sketch-blocks'
 
-console.log(`Sketch Synth v${process.env.npm_package_version}`)
+console.log(`\n\n⚗️  Sketch Synth v${process.env.npm_package_version}`)
 
 var layerCollection = []
 const files = glob.sync('assets/**/*.svg')
@@ -19,11 +27,12 @@ const files = glob.sync('assets/**/*.svg')
 files.forEach((file, index) => {
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
   const svgName = path.basename(file, '.svg')
-  console.log(`\n\nConverting ${svgName}`)
+  console.log(`\nConverting "${svgName}.svg"`)
   const json = parseSync(svgData)
 
   const width: number = parseInt(json.attributes.width) || 100
   const height: number = parseInt(json.attributes.height) || 100
+  console.log(`  Dimensions: ${width}x${height}`)
 
   var artboard: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
     svgName,
@@ -45,41 +54,62 @@ files.forEach((file, index) => {
         let attributes = { ...pathDefaultAttributes, ...child.attributes }
         // style | script | mask | marker | clipPath | pattern | linearGradient | radialGradient | pattern
         let content = child.children
-        console.log(attributes)
-        console.log(content)
+        // console.log(attributes)
+        // console.log(content)
 
-        // const svgPath: Path = {
-        //   type: 'path',
-        //   d: child.attributes.d,
-        // }
-        // let svgPathPoints = toPoints(svgPath)
-        // console.log(`Parsing "${svgName}.svg"`)
-        // console.log(svgPathPoints)
+        const svgPath: Path = {
+          type: 'path',
+          d: attributes.d,
+        }
+        let svgPathPoints = toPoints(svgPath)
+        let sketchPathPoints = []
+        let numberOfPaths = svgPathPoints.filter(point => point.moveTo == true)
+          .length
+        console.log(`There are ${numberOfPaths} real paths in this path node`)
 
-        // let sketchPathPoints = []
-        // svgPathPoints.forEach(point => {
-        //   console.log(point)
+        svgPathPoints.forEach((point, index) => {
+          // If point `moveTo`, this is a new path
+          console.log(point)
 
-        //   // Convert SVG Points to Sketch CurvePoints
-        //   let sketchPoint: FileFormat.CurvePoint = {
-        //     _class: 'curvePoint',
-        //     point: `{${point.x},${point.y}}`,
-        //     cornerRadius: 0,
-        //     curveFrom: `{${point.x},${point.y}}`,
-        //     curveTo: `{${point.x},${point.y}}`,
-        //     // curveMode: point.curve.type,
-        //     curveMode: FileFormat.CurveMode.None,
-        //     hasCurveFrom: false,
-        //     hasCurveTo: false,
-        //   }
-        //   sketchPathPoints.push(point)
-        // })
+          let sketchPoint: FileFormat.CurvePoint = {
+            _class: 'curvePoint',
+            cornerRadius: 0,
+            curveMode: FileFormat.CurveMode.Straight, // straight paths by now
+            curveFrom: `{ x: 0, y: 0 }`,
+            curveTo: `{ x: 0, y: 0 }`,
+            // curveFrom: `{ x: ${point.curve.x1}, y: ${point.curve.y1} }`,
+            // curveTo: `{ x: ${point.curve.x2}, y: ${point.curve.y2} }`,
+            // hasCurveFrom: point.curve != undefined,
+            // hasCurveTo: point.curve != undefined,
+            hasCurveFrom: false,
+            hasCurveTo: false,
+            point: `{ x: ${point.x / width}, y: ${point.y / height} }`,
+          }
+          console.log(sketchPoint)
+          // if (point.moveTo == undefined) {
+          // We only want to render points without a `moveTo` attribute,
+          // since `svgpoints` already gives us points in the right coordinates
+          // and we don't really need to paint the `moveTo` points
+          sketchPathPoints.push(sketchPoint)
+          // }
+        })
 
-        let sketchPath = sketchBlocks.emptyShapePath()
+        let sketchPath = sketchBlocks.emptyShapePath(
+          'path',
+          0,
+          0,
+          width,
+          height
+        )
+        sketchPath.points = sketchPathPoints
+        //sketchPath.points = sketchBlocks.samplePoints()
+        // TODO: we need to recalculate the frame for the path after adding the points
+        // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
         artboard.layers.push(sketchPath)
         break
 
       case 'defs':
+        break
         // These are Styles and other reusable elements.
         // It can contain any element inside it, but by now we'll only worry about Style-like content:
         // `linearGradient`, `radialGradient` and `pattern` (although we may also ignore this last one)
@@ -138,7 +168,7 @@ files.forEach((file, index) => {
 
       default:
         console.warn(
-          `⚠️  We don't know what to do with '${child.name}' elements yet\nTry again in a few days`
+          `⚠️  We don't know what to do with '${child.name}' elements yet.`
         )
         // Insert a dummy element
         artboard.layers.push(
@@ -230,5 +260,3 @@ function saveFile(layerCollection) {
       console.log(err)
     })
 }
-
-// Utility functions to generate various Sketch elements
