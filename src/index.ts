@@ -15,7 +15,6 @@ console.log(`Sketch Synth v${process.env.npm_package_version}`)
 
 var layerCollection = []
 const files = glob.sync('assets/**/*.svg')
-const objid = () => uuid().toUpperCase()
 
 files.forEach((file, index) => {
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
@@ -32,11 +31,64 @@ files.forEach((file, index) => {
     index * 100,
     0
   )
-  json.children.forEach(child => {
+  json.children.forEach((child, index) => {
     // This is only true for children of type `path`, of course
     console.log(`Translating child:`)
     console.log(child)
     switch (child.name) {
+      case 'defs':
+        // These are Styles and other reusable elements.
+        // It can contain any element inside it, but by now we'll only worry about Style-like content:
+        // `linearGradient`, `radialGradient` and `pattern` (although we may also ignore this last one)
+        // For more info, check https://www.w3.org/TR/SVG/struct.html#DefsElement
+        child.children.forEach(def => {
+          console.log(def)
+          switch (def.name) {
+            case 'linearGradient':
+              // https://www.w3.org/TR/SVG/pservers.html#LinearGradientElement
+              // ## Parse Attributes
+              let attributes = {
+                id: def.attributes.id || `linear-gradient-${index}`, // id, x1, y1, x2, y2, gradientUnits, gradientTransform, spreadMethod, href
+                // TODO: These values are actually of the <length> type. So they can come in all sorts of units. Find a proper parser for that (check https://github.com/reworkcss/css)
+                x1: def.attributes.x1 || 0,
+                x2: def.attributes.x2 || 0,
+                y1: def.attributes.y1 || 100,
+                y2: def.attributes.y2 || 0,
+                gradientUnits:
+                  def.attributes.gradientUnits || 'objectBoundingBox', // 'userSpaceOnUse' | 'objectBoundingBox'
+                gradientTransform: def.attributes.gradientTransform || {}, // Ignored by now
+                spreadMethod: def.attributes.spreadMethod || 'pad', // 'pad' | 'reflect' | 'repeat'
+                href: def.attributes.href || '',
+              }
+              // ## Parse content
+              // Children of a linearGradient element can be any of:
+              // desc, title, metadata, animate, animateTransform, script, set, stop, style
+              // We'll only worry about `stop` elements by now
+              let stops = def.children.filter(element => element.name == 'stop')
+              stops.forEach(stop => {
+                // https://www.w3.org/TR/SVG/pservers.html#StopElement
+                console.log(stop)
+                console.log(`Linear Gradient Stop:`)
+                console.log(`\tOffset: ${stop.attributes.offset}`)
+                // Style can be an attribute or a child element of a stop 🙃
+                // https://www.w3.org/TR/SVG/styling.html#StyleAttribute
+                // https://www.w3.org/TR/SVG/styling.html#StyleElement
+                console.log(`\tStyle: ${stop.attributes.style}`)
+              })
+              break
+            case 'radialGradient':
+              console.log(`radialGradient`)
+              //
+              // def.attributes
+              break
+            default:
+              console.warn(
+                `⚠️ We don't know what to do with ${def.name} by now`
+              )
+              break
+          }
+        })
+        break
       case 'path':
         const svgPath: Path = {
           type: 'path',
@@ -64,20 +116,24 @@ files.forEach((file, index) => {
           }
           sketchPathPoints.push(point)
         })
-        // Convert path into something Sketch can handle
-        let path: FileFormat.ShapePath = sketchBlocks.emptyShapePath()
-        // iconGroup.layers.push(path)
-        artboard.layers.push(path)
+
+        let sketchPath = sketchBlocks.emptyShapePath()
+        artboard.layers.push(sketchPath)
         break
 
       default:
         console.warn(
-          `We don't know what to do with '${child.name}' elements yet\nTry again in a few days`
+          `⚠️ We don't know what to do with '${child.name}' elements yet\nTry again in a few days`
+        )
+        // Insert a dummy element
+        artboard.layers.push(
+          sketchBlocks.emptyShapePath('Untranslated element')
+          // TODO: investigate why we can't use emojis here to name layers...
+          // sketchBlocks.emptyShapePath('⚠️ Untranslated element')
         )
         break
     }
   })
-  // layerCollection.push(iconGroup)
   layerCollection.push(artboard)
 })
 saveFile(layerCollection)
@@ -85,7 +141,7 @@ saveFile(layerCollection)
 // Write file
 function saveFile(layerCollection) {
   console.log(`Saving file with ${layerCollection.length} layers`)
-  // const pagesAndArtboardsID = objid()
+  // const pagesAndArtboardsID = uuid()
   // const pageName = 'Symbols'
   const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
 
@@ -125,12 +181,12 @@ function saveFile(layerCollection) {
   const contents: FileFormat.Contents = {
     document: {
       _class: 'document',
-      do_objectID: objid(), // TODO: get the uuid from a command line option?
+      do_objectID: uuid(), // TODO: get the uuid from a command line option?
       colorSpace: 0,
       currentPageIndex: 0,
       assets: {
         _class: 'assetCollection',
-        do_objectID: objid(),
+        do_objectID: uuid(),
         images: [],
         colorAssets: [],
         exportPresets: [],
@@ -145,7 +201,7 @@ function saveFile(layerCollection) {
       layerStyles: { _class: 'sharedStyleContainer', objects: [] },
       layerSymbols: { _class: 'symbolContainer', objects: [] },
       layerTextStyles: { _class: 'sharedTextStyleContainer', objects: [] },
-      pages: [blankPage, symbolsPage],
+      pages: [symbolsPage],
     },
     meta,
     user,

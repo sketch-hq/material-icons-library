@@ -100,7 +100,7 @@ const sketchBlocks = {
       isFlowHome: false,
       isLocked: false,
       isVisible: true,
-      layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
+      layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
       layers: [],
       nameIsFixed: true,
       resizesContent: false,
@@ -179,7 +179,7 @@ const sketchBlocks = {
   ): FileFormat.ShapePath => {
     return {
       _class: 'shapePath',
-      do_objectID: uuid().toUpperCase(),
+      do_objectID: uuid(),
       name: name || 'Path',
       nameIsFixed: true,
       pointRadiusBehaviour: 1,
