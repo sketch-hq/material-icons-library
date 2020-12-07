@@ -4,16 +4,8 @@ import glob = require('glob')
 
 import { v4 as uuid } from 'uuid'
 
-import { parseSync, stringify } from 'svgson'
-import {
-  Circle,
-  Path,
-  toPoints,
-  Curve,
-  CurveArc,
-  CurveCubic,
-  CurveQuadratic,
-} from 'svg-points'
+import { parseSync } from 'svgson'
+import { Path, Point, toPoints } from 'svg-points'
 
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { toFile } from './to-file'
@@ -61,31 +53,56 @@ files.forEach((file, index) => {
           type: 'path',
           d: attributes.d,
         }
-        let svgPathPoints = toPoints(svgPath)
-        let sketchPathPoints = []
+        let svgPathPoints: Point[] = toPoints(svgPath)
+        let sketchPathPoints: FileFormat.CurvePoint[] = []
         let numberOfPaths = svgPathPoints.filter(point => point.moveTo == true)
           .length
-        console.log(`There are ${numberOfPaths} real paths in this path node`)
+        // console.log(`There are ${numberOfPaths} real paths in this path node`)
 
-        svgPathPoints.forEach((point, index) => {
+        svgPathPoints.forEach((point: Point, index) => {
           // If point `moveTo`, this is a new path
           console.log(point)
-
+          // TODO: extract multiple Sketch paths from a single svg path
+          // TODO: move this to sketchBlocks
           let sketchPoint: FileFormat.CurvePoint = {
             _class: 'curvePoint',
             cornerRadius: 0,
-            curveMode: FileFormat.CurveMode.Straight, // straight paths by now
+            curveMode: FileFormat.CurveMode.Straight,
             curveFrom: `{ x: 0, y: 0 }`,
             curveTo: `{ x: 0, y: 0 }`,
-            // curveFrom: `{ x: ${point.curve.x1}, y: ${point.curve.y1} }`,
-            // curveTo: `{ x: ${point.curve.x2}, y: ${point.curve.y2} }`,
-            // hasCurveFrom: point.curve != undefined,
-            // hasCurveTo: point.curve != undefined,
             hasCurveFrom: false,
             hasCurveTo: false,
             point: `{ x: ${point.x / width}, y: ${point.y / height} }`,
           }
-          console.log(sketchPoint)
+
+          if (point.curve) {
+            switch (point.curve.type) {
+              case 'cubic':
+                sketchPoint.curveMode = FileFormat.CurveMode.Asymmetric
+                // TODO: this curve translation clearly needs more work, because Sketch does not have
+                // anything like SVG's cubic curves, so we need to do some magic here. Check the code
+                // on Sketch's side to see what we're doing there.
+                sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
+                  point.curve.y2 / height
+                }}`
+                sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
+                  point.curve.y1 / height
+                }}`
+                sketchPoint.hasCurveTo = true
+                sketchPoint.hasCurveFrom = true
+                break
+              case 'arc':
+                console.log('⚠️ Arc curves not implemented yet')
+                break
+              case 'quadratic':
+                console.log('⚠️ Quadratic curves not implemented yet')
+                break
+              default:
+                break
+            }
+          }
+
+          // console.log(sketchPoint)
           // if (point.moveTo == undefined) {
           // We only want to render points without a `moveTo` attribute,
           // since `svgpoints` already gives us points in the right coordinates
@@ -101,11 +118,56 @@ files.forEach((file, index) => {
           width,
           height
         )
+        sketchPath.style = sketchBlocks.sampleStyle() // TODO: get actual style from SVG
+        if (attributes.id) {
+          sketchPath.name = attributes.id
+        }
         sketchPath.points = sketchPathPoints
-        //sketchPath.points = sketchBlocks.samplePoints()
-        // TODO: we need to recalculate the frame for the path after adding the points
+        // TODO: we may need to recalculate the frame for the path after adding the points
         // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
+        // By now, we'll use the width and height supplied by the SVG file
         artboard.layers.push(sketchPath)
+        break
+
+      case 'rect':
+        console.log(child)
+        const attrs = child.attributes
+        let sketchRectangle: FileFormat.Rectangle = {
+          _class: 'rectangle',
+          do_objectID: uuid(),
+          booleanOperation: FileFormat.BooleanOperation.None,
+          edited: false,
+          exportOptions: sketchBlocks.emptyExportOptions(),
+          fixedRadius: 0,
+          frame: sketchBlocks.emptyRect(
+            parseInt(attrs.x),
+            parseInt(attrs.y),
+            parseInt(attrs.width),
+            parseInt(attrs.height)
+          ),
+          hasConvertedToNewRoundCorners: true,
+          isClosed: true,
+          isFixedToViewport: false,
+          isFlippedHorizontal: false,
+          isFlippedVertical: false,
+          isLocked: false,
+          isVisible: true,
+          layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
+          name: 'rectangle',
+          nameIsFixed: true,
+          needsConvertionToNewRoundCorners: false,
+          pointRadiusBehaviour: FileFormat.PointsRadiusBehaviour.Disabled,
+          points: sketchBlocks.samplePoints(), // TODO: add points
+          resizingConstraint: 0,
+          resizingType: FileFormat.ResizeType.Stretch,
+          rotation: 0,
+          shouldBreakMaskChain: false,
+          style: sketchBlocks.sampleStyle(), // TODO: parse style
+        }
+        if (attrs.id) {
+          sketchRectangle.name = attrs.id
+        }
+        artboard.layers.push(sketchRectangle)
         break
 
       case 'defs':
@@ -186,13 +248,12 @@ saveFile(layerCollection)
 // Write file
 function saveFile(layerCollection) {
   console.log(`Saving file with ${layerCollection.length} layers`)
-  // const pagesAndArtboardsID = uuid()
-  // const pageName = 'Symbols'
   const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
 
   const meta: FileFormat.Meta = {
     commit: fileCommit,
     pagesAndArtboards: {
+      // Apparently this is not required...
       //   pagesAndArtboardsID: { name: pageName, artboards: {} },
     },
     version: 131,
