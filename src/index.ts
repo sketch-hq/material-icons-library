@@ -139,11 +139,14 @@ files.forEach((file, index) => {
           parseInt(attrs.width) || 100,
           parseInt(attrs.height) || 100
         )
-        if (attrs.rx) {
-          // TODO: support multiple corner radius
-          sketchRectangle.fixedRadius = parseInt(attrs.rx)
+        if (attrs.rx || attrs.ry) {
+          // TODO: SVG supports an `ry` attribute for vertical corner radius (see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect)
+          // As far as I know, we don't have anything similar in Sketch, and I doubt it makes sense to try to implement it,
+          // but I think it's worth mentioning here. This implementation just takes the first it finds and calls it a day.
+          let cornerRadius = parseInt(attrs.rx) || parseInt(attrs.ry)
+          sketchRectangle.fixedRadius = cornerRadius
           sketchRectangle.points.forEach(point => {
-            point.cornerRadius = parseInt(attrs.rx)
+            point.cornerRadius = cornerRadius
           })
           sketchRectangle.pointRadiusBehaviour =
             FileFormat.PointsRadiusBehaviour.Rounded
