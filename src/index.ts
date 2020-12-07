@@ -140,12 +140,13 @@ files.forEach((file, index) => {
           parseInt(attrs.height) || 100
         )
         if (attrs.rx) {
-          // Rectangle has rounded corners
+          // TODO: support multiple corner radius
           sketchRectangle.fixedRadius = parseInt(attrs.rx)
+          sketchRectangle.points.forEach(point => {
+            point.cornerRadius = parseInt(attrs.rx)
+          })
           sketchRectangle.pointRadiusBehaviour =
             FileFormat.PointsRadiusBehaviour.Rounded
-          // sketchRectangle.needsConvertionToNewRoundCorners = true
-          // sketchRectangle.hasConvertedToNewRoundCorners = false
         }
         artboard.layers.push(sketchRectangle)
         break
