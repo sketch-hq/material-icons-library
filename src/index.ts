@@ -132,41 +132,13 @@ files.forEach((file, index) => {
       case 'rect':
         console.log(child)
         const attrs = child.attributes
-        let sketchRectangle: FileFormat.Rectangle = {
-          _class: 'rectangle',
-          do_objectID: uuid(),
-          booleanOperation: FileFormat.BooleanOperation.None,
-          edited: false,
-          exportOptions: sketchBlocks.emptyExportOptions(),
-          fixedRadius: 0,
-          frame: sketchBlocks.emptyRect(
-            parseInt(attrs.x),
-            parseInt(attrs.y),
-            parseInt(attrs.width),
-            parseInt(attrs.height)
-          ),
-          hasConvertedToNewRoundCorners: true,
-          isClosed: true,
-          isFixedToViewport: false,
-          isFlippedHorizontal: false,
-          isFlippedVertical: false,
-          isLocked: false,
-          isVisible: true,
-          layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
-          name: 'rectangle',
-          nameIsFixed: true,
-          needsConvertionToNewRoundCorners: false,
-          pointRadiusBehaviour: FileFormat.PointsRadiusBehaviour.Disabled,
-          points: sketchBlocks.samplePoints(), // TODO: add points
-          resizingConstraint: 0,
-          resizingType: FileFormat.ResizeType.Stretch,
-          rotation: 0,
-          shouldBreakMaskChain: false,
-          style: sketchBlocks.sampleStyle(), // TODO: parse style
-        }
-        if (attrs.id) {
-          sketchRectangle.name = attrs.id
-        }
+        let sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
+          attrs.id || 'rectangle',
+          parseInt(attrs.x) || 0,
+          parseInt(attrs.y) || 0,
+          parseInt(attrs.width) || 100,
+          parseInt(attrs.height) || 100
+        )
         artboard.layers.push(sketchRectangle)
         break
 

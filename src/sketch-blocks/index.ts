@@ -237,6 +237,44 @@ const sketchBlocks = {
     rotation: 0,
     shouldBreakMaskChain: false,
   }),
+  emptyRectangle: (
+    name?: string,
+    x?: number,
+    y?: number,
+    width?: number,
+    height?: number
+  ): FileFormat.Rectangle => ({
+    name: name || 'rectangle',
+    _class: 'rectangle',
+    do_objectID: uuid(),
+    booleanOperation: FileFormat.BooleanOperation.None,
+    edited: false,
+    exportOptions: sketchBlocks.emptyExportOptions(),
+    fixedRadius: 0,
+    frame: sketchBlocks.emptyRect(x || 0, y || 0, width || 100, height || 100),
+    hasConvertedToNewRoundCorners: true,
+    isClosed: true,
+    isFixedToViewport: false,
+    isFlippedHorizontal: false,
+    isFlippedVertical: false,
+    isLocked: false,
+    isVisible: true,
+    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
+    nameIsFixed: true,
+    needsConvertionToNewRoundCorners: false,
+    pointRadiusBehaviour: FileFormat.PointsRadiusBehaviour.Disabled,
+    points: [
+      sketchBlocks.emptyPoint(0, 0),
+      sketchBlocks.emptyPoint(1, 0),
+      sketchBlocks.emptyPoint(1, 1),
+      sketchBlocks.emptyPoint(0, 1),
+    ],
+    resizingConstraint: 0,
+    resizingType: FileFormat.ResizeType.Stretch,
+    rotation: 0,
+    shouldBreakMaskChain: false,
+    style: sketchBlocks.sampleStyle(),
+  }),
   sampleRect: (): FileFormat.Rect => {
     return {
       _class: 'rect',
@@ -247,6 +285,19 @@ const sketchBlocks = {
       height: 100,
     }
   },
+  emptyPoint: (
+    x?: FileFormat.UnitInterval,
+    y?: FileFormat.UnitInterval
+  ): FileFormat.CurvePoint => ({
+    _class: 'curvePoint',
+    cornerRadius: 0,
+    curveMode: FileFormat.CurveMode.Straight,
+    curveFrom: '',
+    curveTo: '',
+    hasCurveFrom: false,
+    hasCurveTo: false,
+    point: `{ ${x || 0}, ${y || 0}}`,
+  }),
   samplePoints: (): FileFormat.CurvePoint[] => {
     // Returns a circle-shaped path
     return [
@@ -353,7 +404,7 @@ const sketchBlocks = {
             ],
           },
           position: 1,
-          thickness: 1,
+          thickness: 0.1,
         },
       ],
       colorControls: {
@@ -376,7 +427,7 @@ const sketchBlocks = {
           fillType: 0,
           color: {
             _class: 'color',
-            alpha: 1,
+            alpha: 0.5,
             blue: 0.847,
             green: 0.847,
             red: 0.847,
