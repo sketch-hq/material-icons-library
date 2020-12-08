@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid'
 
 import { parseSync } from 'svgson'
 import { Path, Point, toPoints } from 'svg-points'
+import { s2v } from './sketch-svg'
 
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { toFile } from './to-file'
@@ -34,7 +35,7 @@ files.forEach((file, index) => {
     0
   )
   json.children.forEach((child, index) => {
-    // console.log(child)
+    console.log(child)
     switch (child.name) {
       case 'path':
         // https://www.w3.org/TR/SVG2/paths.html#PathElement
@@ -130,8 +131,7 @@ files.forEach((file, index) => {
         break
 
       case 'rect':
-        console.log(child)
-        const attrs = child.attributes
+        let attrs = child.attributes
         let sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
           attrs.id || 'rectangle',
           parseInt(attrs.x) || 0,
@@ -151,9 +151,33 @@ files.forEach((file, index) => {
           sketchRectangle.pointRadiusBehaviour =
             FileFormat.PointsRadiusBehaviour.Rounded
         }
+        if (attrs.style) {
+          // TODO: parse the real style, instead of using a default style
+          let style = s2v.parseStyle(attrs.style)
+          sketchRectangle.style = style
+        }
         artboard.layers.push(sketchRectangle)
         break
-
+      case 'circle':
+        let skethCircle: FileFormat.Oval = sketchBlocks.emptyCircle(
+          child.attributes.id,
+          parseInt(child.attributes.cx) - parseInt(child.attributes.r),
+          parseInt(child.attributes.cy) - parseInt(child.attributes.r),
+          parseInt(child.attributes.r) * 2,
+          parseInt(child.attributes.r) * 2
+        )
+        artboard.layers.push(skethCircle)
+        break
+      case 'ellipse':
+        let sketchEllipse: FileFormat.Oval = sketchBlocks.emptyCircle(
+          child.attributes.id,
+          parseInt(child.attributes.cx) - parseInt(child.attributes.rx),
+          parseInt(child.attributes.cy) - parseInt(child.attributes.ry),
+          parseInt(child.attributes.rx) * 2,
+          parseInt(child.attributes.ry) * 2
+        )
+        artboard.layers.push(sketchEllipse)
+        break
       case 'defs':
         break
         // These are Styles and other reusable elements.
@@ -217,11 +241,11 @@ files.forEach((file, index) => {
           `⚠️  We don't know what to do with '${child.name}' elements yet.`
         )
         // Insert a dummy element
-        artboard.layers.push(
-          sketchBlocks.emptyShapePath('Untranslated element')
-          // TODO: investigate why we can't use emojis here to name layers...
-          // sketchBlocks.emptyShapePath('⚠️ Untranslated element')
-        )
+        // artboard.layers.push(
+        // TODO: investigate why we can't use emojis here to name layers...
+        // sketchBlocks.emptyShapePath('⚠️ Untranslated element')
+        // sketchBlocks.emptyShapePath('Untranslated element')
+        // )
         break
     }
   })

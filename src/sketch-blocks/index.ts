@@ -275,6 +275,36 @@ const sketchBlocks = {
     shouldBreakMaskChain: false,
     style: sketchBlocks.sampleStyle(),
   }),
+  emptyCircle: (
+    name?: string,
+    x?: number,
+    y?: number,
+    width?: number,
+    height?: number
+  ): FileFormat.Oval => ({
+    _class: 'oval',
+    name: name || 'Oval',
+    do_objectID: uuid(),
+    edited: false,
+    exportOptions: sketchBlocks.emptyExportOptions(),
+    frame: sketchBlocks.emptyRect(x || 0, y || 0, width || 100, height || 100),
+    isClosed: true,
+    isFixedToViewport: false,
+    isFlippedHorizontal: false,
+    isFlippedVertical: false,
+    isLocked: false,
+    isVisible: true,
+    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
+    nameIsFixed: false,
+    pointRadiusBehaviour: FileFormat.PointsRadiusBehaviour.Disabled,
+    points: sketchBlocks.samplePoints(), // These are already a circle :D
+    resizingConstraint: -63,
+    resizingType: FileFormat.ResizeType.Stretch,
+    rotation: 0,
+    shouldBreakMaskChain: false,
+    style: sketchBlocks.sampleStyle(),
+    booleanOperation: FileFormat.BooleanOperation.None,
+  }),
   sampleRect: (): FileFormat.Rect => {
     return {
       _class: 'rect',
@@ -346,7 +376,7 @@ const sketchBlocks = {
   sampleStyle: (): FileFormat.Style => {
     return {
       _class: 'style',
-      do_objectID: '63CCF63E-20BD-46E7-87A5-8540F7D34036',
+      do_objectID: '63CCF63E-20BD-46E7-87A5-8540F7D34036', // is this a bug, or a feature?
       endMarkerType: 0,
       miterLimit: 10,
       startMarkerType: 0,
