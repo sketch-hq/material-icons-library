@@ -28,15 +28,61 @@ const sketchBlocks = {
   colorGrey: (): FileFormat.Color => {
     return sketchBlocks.color(0.5, 0.5, 0.5)
   },
-  emptyExportOptions: (): FileFormat.ExportOptions => {
-    return {
-      _class: 'exportOptions',
-      includedLayerIds: [],
-      layerOptions: 0,
-      shouldTrim: false,
-      exportFormats: [],
-    }
+  colorGreyTrans: (): FileFormat.Color => {
+    return sketchBlocks.color(0.5, 0.5, 0.5, 0.5)
   },
+  emptyExportOptions: (): FileFormat.ExportOptions => ({
+    _class: 'exportOptions',
+    includedLayerIds: [],
+    layerOptions: 0,
+    shouldTrim: false,
+    exportFormats: [],
+  }),
+  emptyLayer: () => ({
+    _class: 'skeleton',
+    name: 'object',
+    do_objectID: uuid(),
+    frame: sketchBlocks.emptyRect(),
+    nameIsFixed: false,
+  }),
+  emptyArtboard: (name?:string,x?:number,y?:number,width?:number,height?:number): FileFormat.Artboard => ({
+    _class: 'artboard',
+    name: name || 'Artboard',
+    do_objectID: uuid(),
+    nameIsFixed: false,
+    backgroundColor: sketchBlocks.colorWhite(),
+    booleanOperation: FileFormat.BooleanOperation.None,
+    exportOptions: sketchBlocks.emptyExportOptions(),
+    frame: sketchBlocks.emptyRect(x,y,width,height),
+    hasBackgroundColor: false,
+    hasClickThrough: false,
+    horizontalRulerData: {
+      _class: 'rulerData',
+      base: 0,
+      guides: [],
+    },
+    verticalRulerData: {
+      _class: 'rulerData',
+      base: 0,
+      guides: [],
+    },
+    includeBackgroundColorInExport: false,
+    includeInCloudUpload: true,
+    isFixedToViewport: false,
+    isFlippedHorizontal: false,
+    isFlippedVertical: false,
+    isFlowHome: false,
+    isLocked: false,
+    isVisible: true,
+    layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+    layers: [],
+    resizesContent: false,
+    resizingConstraint: 63,
+    resizingType: FileFormat.ResizeType.Stretch,
+    rotation: 0,
+    shouldBreakMaskChain: false,
+    style: sketchBlocks.sampleStyle()
+  }),
   emptyGroup: (
     groupName: string,
     frame?: FileFormat.Rect
@@ -65,62 +111,22 @@ const sketchBlocks = {
     return emptyGroup
   },
   emptySymbolMaster: (
-    name: string,
+    name?: string,
     width?: number,
     height?: number,
     x?: number,
     y?: number
-  ): FileFormat.SymbolMaster => {
-    return {
+  ): FileFormat.SymbolMaster => ({
+    ...sketchBlocks.emptyArtboard(name,x,y,width,height),
+    ...{
       _class: 'symbolMaster',
-      do_objectID: uuid(),
-      symbolID: uuid(),
-      name: name,
-      backgroundColor: sketchBlocks.colorWhite(),
-      hasBackgroundColor: false,
-      booleanOperation: FileFormat.BooleanOperation.None,
-      exportOptions: sketchBlocks.emptyExportOptions(),
-      frame: {
-        _class: 'rect',
-        constrainProportions: false,
-        width: width || 100,
-        height: height || 100,
-        x: x || 0,
-        y: y || 0,
-      },
-      hasClickThrough: false,
       includeBackgroundColorInExport: false,
       includeBackgroundColorInInstance: false,
-      includeInCloudUpload: true,
+      symbolID: uuid(),
       allowsOverrides: false,
       overrideProperties: [],
-      isFixedToViewport: false,
-      isFlippedHorizontal: false,
-      isFlippedVertical: false,
-      isFlowHome: false,
-      isLocked: false,
-      isVisible: true,
-      layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
-      layers: [],
-      nameIsFixed: true,
-      resizesContent: false,
-      resizingConstraint: 63,
-      resizingType: FileFormat.ResizeType.Stretch,
-      rotation: 0,
-      shouldBreakMaskChain: false,
-      horizontalRulerData: {
-        _class: 'rulerData',
-        base: 0,
-        guides: [],
-      },
-      verticalRulerData: {
-        _class: 'rulerData',
-        base: 0,
-        guides: [],
-      },
-      clippingMaskMode: 0,
     }
-  },
+  }),
   emptyRect: (
     x?: number,
     y?: number,
@@ -400,7 +406,7 @@ const sketchBlocks = {
       borders: [
         {
           _class: 'border',
-          isEnabled: true,
+          isEnabled: false,
           fillType: 0,
           color: {
             _class: 'color',
@@ -454,24 +460,18 @@ const sketchBlocks = {
         {
           _class: 'fill',
           isEnabled: true,
-          fillType: 0,
-          color: {
-            _class: 'color',
-            alpha: 0.5,
-            blue: 0.847,
-            green: 0.847,
-            red: 0.847,
-          },
+          fillType: FileFormat.FillType.Color,
+          color: sketchBlocks.colorGreyTrans(),
           contextSettings: {
             _class: 'graphicsContextSettings',
-            blendMode: 0,
+            blendMode: FileFormat.BlendMode.Normal,
             opacity: 1,
           },
           gradient: {
             _class: 'gradient',
             elipseLength: 0,
             from: '{0.5, 0}',
-            gradientType: 0,
+            gradientType: FileFormat.GradientType.Linear,
             to: '{0.5, 1}',
             stops: [
               {
@@ -488,7 +488,7 @@ const sketchBlocks = {
           },
           noiseIndex: 0,
           noiseIntensity: 0,
-          patternFillType: 1,
+          patternFillType: FileFormat.PatternFillType.Fill,
           patternTileScale: 1,
         },
       ],
