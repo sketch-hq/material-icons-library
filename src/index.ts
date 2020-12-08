@@ -27,7 +27,12 @@ files.forEach((file, index) => {
   const height: number = parseInt(json.attributes.height) || 100
   console.log(`  Dimensions: ${width}x${height}`)
 
-  var artboard: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
+  /*
+  TODO: There's something wrong with the way I'm creating these, because
+  although they're drawn in the document, selecting them does not update
+  the Inspector data like normal Symbol Masters do.
+  */
+  var symbolMaster: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
     svgName,
     width,
     height,
@@ -127,7 +132,7 @@ files.forEach((file, index) => {
         // TODO: we may need to recalculate the frame for the path after adding the points
         // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
         // By now, we'll use the width and height supplied by the SVG file
-        artboard.layers.push(sketchPath)
+        symbolMaster.layers.push(sketchPath)
         break
 
       case 'rect':
@@ -156,7 +161,7 @@ files.forEach((file, index) => {
           let style = s2v.parseStyle(attrs.style)
           sketchRectangle.style = style
         }
-        artboard.layers.push(sketchRectangle)
+        symbolMaster.layers.push(sketchRectangle)
         break
       case 'circle':
         let skethCircle: FileFormat.Oval = sketchBlocks.emptyCircle(
@@ -166,7 +171,7 @@ files.forEach((file, index) => {
           parseInt(child.attributes.r) * 2,
           parseInt(child.attributes.r) * 2
         )
-        artboard.layers.push(skethCircle)
+        symbolMaster.layers.push(skethCircle)
         break
       case 'ellipse':
         let sketchEllipse: FileFormat.Oval = sketchBlocks.emptyCircle(
@@ -176,7 +181,7 @@ files.forEach((file, index) => {
           parseInt(child.attributes.rx) * 2,
           parseInt(child.attributes.ry) * 2
         )
-        artboard.layers.push(sketchEllipse)
+        symbolMaster.layers.push(sketchEllipse)
         break
       case 'defs':
         break
@@ -241,7 +246,7 @@ files.forEach((file, index) => {
           `⚠️  We don't know what to do with '${child.name}' elements yet.`
         )
         // Insert a dummy element
-        // artboard.layers.push(
+        // symbolMaster.layers.push(
         // TODO: investigate why we can't use emojis here to name layers...
         // sketchBlocks.emptyShapePath('⚠️ Untranslated element')
         // sketchBlocks.emptyShapePath('Untranslated element')
@@ -249,7 +254,7 @@ files.forEach((file, index) => {
         break
     }
   })
-  layerCollection.push(artboard)
+  layerCollection.push(symbolMaster)
 })
 saveFile(layerCollection)
 

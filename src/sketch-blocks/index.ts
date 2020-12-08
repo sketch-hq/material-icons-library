@@ -123,7 +123,7 @@ const sketchBlocks = {
       includeBackgroundColorInExport: false,
       includeBackgroundColorInInstance: false,
       symbolID: uuid(),
-      allowsOverrides: false,
+      allowsOverrides: true,
       overrideProperties: [],
     }
   }),
