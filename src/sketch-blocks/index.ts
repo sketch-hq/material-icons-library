@@ -45,7 +45,13 @@ const sketchBlocks = {
     frame: sketchBlocks.emptyRect(),
     nameIsFixed: false,
   }),
-  emptyArtboard: (name?:string,x?:number,y?:number,width?:number,height?:number): FileFormat.Artboard => ({
+  emptyArtboard: (
+    name?: string,
+    x?: number,
+    y?: number,
+    width?: number,
+    height?: number
+  ): FileFormat.Artboard => ({
     _class: 'artboard',
     name: name || 'Artboard',
     do_objectID: uuid(),
@@ -53,7 +59,7 @@ const sketchBlocks = {
     backgroundColor: sketchBlocks.colorWhite(),
     booleanOperation: FileFormat.BooleanOperation.None,
     exportOptions: sketchBlocks.emptyExportOptions(),
-    frame: sketchBlocks.emptyRect(x,y,width,height),
+    frame: sketchBlocks.emptyRect(x, y, width, height),
     hasBackgroundColor: false,
     hasClickThrough: false,
     horizontalRulerData: {
@@ -81,7 +87,7 @@ const sketchBlocks = {
     resizingType: FileFormat.ResizeType.Stretch,
     rotation: 0,
     shouldBreakMaskChain: false,
-    style: sketchBlocks.sampleStyle()
+    style: sketchBlocks.sampleStyle(),
   }),
   emptyGroup: (
     groupName: string,
@@ -117,7 +123,7 @@ const sketchBlocks = {
     x?: number,
     y?: number
   ): FileFormat.SymbolMaster => ({
-    ...sketchBlocks.emptyArtboard(name,x,y,width,height),
+    ...sketchBlocks.emptyArtboard(name, x, y, width, height),
     ...{
       _class: 'symbolMaster',
       includeBackgroundColorInExport: false,
@@ -125,7 +131,7 @@ const sketchBlocks = {
       symbolID: uuid(),
       allowsOverrides: true,
       overrideProperties: [],
-    }
+    },
   }),
   emptyRect: (
     x?: number,
