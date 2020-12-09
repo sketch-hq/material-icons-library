@@ -42,40 +42,10 @@ files.forEach((file, index) => {
     console.log(child)
     switch (child.name) {
       case 'path':
-        let sketchPath = s2v.path(child)
-        // TODO: we may need to recalculate the frame for the path after adding the points
-        // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
-        // By now, we'll use the width and height supplied by the SVG file
-        symbolMaster.layers.push(sketchPath)
+        symbolMaster.layers.push(s2v.path(child))
         break
-
       case 'rect':
-        let attrs = child.attributes
-        let sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
-          attrs.id || 'rectangle',
-          parseInt(attrs.x) || 0,
-          parseInt(attrs.y) || 0,
-          parseInt(attrs.width) || 100,
-          parseInt(attrs.height) || 100
-        )
-        if (attrs.rx || attrs.ry) {
-          // TODO: SVG supports an `ry` attribute for vertical corner radius (see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect)
-          // As far as I know, we don't have anything similar in Sketch, and I doubt it makes sense to try to implement it,
-          // but I think it's worth mentioning here. This implementation just takes the first it finds and calls it a day.
-          let cornerRadius = parseInt(attrs.rx) || parseInt(attrs.ry)
-          sketchRectangle.fixedRadius = cornerRadius
-          sketchRectangle.points.forEach(point => {
-            point.cornerRadius = cornerRadius
-          })
-          sketchRectangle.pointRadiusBehaviour =
-            FileFormat.PointsRadiusBehaviour.Rounded
-        }
-        if (attrs.style) {
-          // TODO: parse the real style, instead of using a default style
-          let style = s2v.parseStyle(attrs.style)
-          sketchRectangle.style = style
-        }
-        symbolMaster.layers.push(sketchRectangle)
+        symbolMaster.layers.push(s2v.rect(child))
         break
       case 'circle':
         symbolMaster.layers.push(s2v.circle(child))
@@ -83,37 +53,8 @@ files.forEach((file, index) => {
       case 'ellipse':
         symbolMaster.layers.push(s2v.ellipse(child))
         break
-
       case 'g':
-        // Groups!
-        let sketchGroup: FileFormat.Group = sketchBlocks.emptyGroup(
-          child.attributes.id || 'Group',
-          parseInt(child.attributes.x) || 0,
-          parseInt(child.attributes.y) || 0,
-          parseInt(child.attributes.width) || 100,
-          parseInt(child.attributes.height) || 100
-        )
-        // Traverse Group contents (here's where you'll wish you had made all the parsing code
-        // reusable in a library, )
-        child.children.forEach(groupContent => {
-          switch (groupContent.name) {
-            case 'path':
-              sketchGroup.layers.push(s2v.path(groupContent))
-              break
-            case 'ellipse':
-              sketchGroup.layers.push(s2v.ellipse(groupContent))
-              break
-            case 'circle':
-              sketchGroup.layers.push(s2v.circle(groupContent))
-              break
-            default:
-              console.warn(
-                `⚠️  We don't know what to do with '${groupContent.name}' elements yet.`
-              )
-              break
-          }
-        })
-        symbolMaster.layers.push(sketchGroup)
+        symbolMaster.layers.push(s2v.group(child))
         break
 
       case 'defs':
@@ -174,6 +115,16 @@ files.forEach((file, index) => {
         })
         break
 
+      case 'image':
+        symbolMaster.layers.push(s2v.image(child))
+        break
+      case 'line':
+      case 'polygon':
+      case 'polyline':
+      case 'text':
+      case 'filter':
+      case 'font':
+      case 'font-face':
       default:
         console.warn(
           `⚠️  We don't know what to do with '${child.name}' elements yet.`

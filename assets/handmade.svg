@@ -34,6 +34,8 @@
   </g>
   <rect id="rect-with-vertical-gradient" x="350" y="400" width="100" height="100" fill="url(#vertical-gradient)" />
   <rect id="rect-with-horizontal-gradient" x="350" y="520" width="100" height="100" fill="url(#radial-gradient)" />
+  <image href="https://www.sketch.com/images/icons/universal/color/64x64/plugins@2x.png" x="50" y="600" height="150px"
+    width="250px" />
   <defs>
     <linearGradient id="horizontal-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
