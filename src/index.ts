@@ -5,7 +5,6 @@ import glob = require('glob')
 import { v4 as uuid } from 'uuid'
 
 import { parseSync } from 'svgson'
-import { Path, Point, toPoints } from 'svg-points'
 import { s2v } from './sketch-svg'
 
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
@@ -43,92 +42,7 @@ files.forEach((file, index) => {
     console.log(child)
     switch (child.name) {
       case 'path':
-        // https://www.w3.org/TR/SVG2/paths.html#PathElement
-        // d | pathLength (optional) | id | style | class |
-        let pathDefaultAttributes = {
-          d: '',
-          id: `path-${index}`,
-        }
-        let attributes = { ...pathDefaultAttributes, ...child.attributes }
-        // style | script | mask | marker | clipPath | pattern | linearGradient | radialGradient | pattern
-        let content = child.children
-        // console.log(attributes)
-        // console.log(content)
-
-        const svgPath: Path = {
-          type: 'path',
-          d: attributes.d,
-        }
-        let svgPathPoints: Point[] = toPoints(svgPath)
-        let sketchPathPoints: FileFormat.CurvePoint[] = []
-        let numberOfPaths = svgPathPoints.filter(point => point.moveTo == true)
-          .length
-        // console.log(`There are ${numberOfPaths} real paths in this path node`)
-
-        svgPathPoints.forEach((point: Point, index) => {
-          // If point `moveTo`, this is a new path
-          console.log(point)
-          // TODO: extract multiple Sketch paths from a single svg path
-          // TODO: move this to sketchBlocks
-          let sketchPoint: FileFormat.CurvePoint = {
-            _class: 'curvePoint',
-            cornerRadius: 0,
-            curveMode: FileFormat.CurveMode.Straight,
-            curveFrom: `{ x: 0, y: 0 }`,
-            curveTo: `{ x: 0, y: 0 }`,
-            hasCurveFrom: false,
-            hasCurveTo: false,
-            point: `{ x: ${point.x / width}, y: ${point.y / height} }`,
-          }
-
-          if (point.curve) {
-            switch (point.curve.type) {
-              case 'cubic':
-                sketchPoint.curveMode = FileFormat.CurveMode.Asymmetric
-                // TODO: this curve translation clearly needs more work, because Sketch does not have
-                // anything like SVG's cubic curves, so we need to do some magic here. Check the code
-                // on Sketch's side to see what we're doing there.
-                sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
-                  point.curve.y2 / height
-                }}`
-                sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
-                  point.curve.y1 / height
-                }}`
-                sketchPoint.hasCurveTo = true
-                sketchPoint.hasCurveFrom = true
-                break
-              case 'arc':
-                console.log('⚠️ Arc curves not implemented yet')
-                break
-              case 'quadratic':
-                console.log('⚠️ Quadratic curves not implemented yet')
-                break
-              default:
-                break
-            }
-          }
-
-          // console.log(sketchPoint)
-          // if (point.moveTo == undefined) {
-          // We only want to render points without a `moveTo` attribute,
-          // since `svgpoints` already gives us points in the right coordinates
-          // and we don't really need to paint the `moveTo` points
-          sketchPathPoints.push(sketchPoint)
-          // }
-        })
-
-        let sketchPath = sketchBlocks.emptyShapePath(
-          'path',
-          0,
-          0,
-          width,
-          height
-        )
-        sketchPath.style = sketchBlocks.sampleStyle() // TODO: get actual style from SVG
-        if (attributes.id) {
-          sketchPath.name = attributes.id
-        }
-        sketchPath.points = sketchPathPoints
+        let sketchPath = s2v.path(child)
         // TODO: we may need to recalculate the frame for the path after adding the points
         // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
         // By now, we'll use the width and height supplied by the SVG file
@@ -164,25 +78,44 @@ files.forEach((file, index) => {
         symbolMaster.layers.push(sketchRectangle)
         break
       case 'circle':
-        let skethCircle: FileFormat.Oval = sketchBlocks.emptyCircle(
-          child.attributes.id,
-          parseInt(child.attributes.cx) - parseInt(child.attributes.r),
-          parseInt(child.attributes.cy) - parseInt(child.attributes.r),
-          parseInt(child.attributes.r) * 2,
-          parseInt(child.attributes.r) * 2
-        )
-        symbolMaster.layers.push(skethCircle)
+        symbolMaster.layers.push(s2v.circle(child))
         break
       case 'ellipse':
-        let sketchEllipse: FileFormat.Oval = sketchBlocks.emptyCircle(
-          child.attributes.id,
-          parseInt(child.attributes.cx) - parseInt(child.attributes.rx),
-          parseInt(child.attributes.cy) - parseInt(child.attributes.ry),
-          parseInt(child.attributes.rx) * 2,
-          parseInt(child.attributes.ry) * 2
-        )
-        symbolMaster.layers.push(sketchEllipse)
+        symbolMaster.layers.push(s2v.ellipse(child))
         break
+
+      case 'g':
+        // Groups!
+        let sketchGroup: FileFormat.Group = sketchBlocks.emptyGroup(
+          child.attributes.id || 'Group',
+          parseInt(child.attributes.x) || 0,
+          parseInt(child.attributes.y) || 0,
+          parseInt(child.attributes.width) || 100,
+          parseInt(child.attributes.height) || 100
+        )
+        // Traverse Group contents (here's where you'll wish you had made all the parsing code
+        // reusable in a library, )
+        child.children.forEach(groupContent => {
+          switch (groupContent.name) {
+            case 'path':
+              sketchGroup.layers.push(s2v.path(groupContent))
+              break
+            case 'ellipse':
+              sketchGroup.layers.push(s2v.ellipse(groupContent))
+              break
+            case 'circle':
+              sketchGroup.layers.push(s2v.circle(groupContent))
+              break
+            default:
+              console.warn(
+                `⚠️  We don't know what to do with '${groupContent.name}' elements yet.`
+              )
+              break
+          }
+        })
+        symbolMaster.layers.push(sketchGroup)
+        break
+
       case 'defs':
         break
         // These are Styles and other reusable elements.
