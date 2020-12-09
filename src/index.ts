@@ -118,10 +118,12 @@ files.forEach((file, index) => {
       case 'image':
         symbolMaster.layers.push(s2v.image(child))
         break
+      case 'text':
+        symbolMaster.layers.push(s2v.text(child))
+        break
       case 'line':
       case 'polygon':
       case 'polyline':
-      case 'text':
       case 'filter':
       case 'font':
       case 'font-face':

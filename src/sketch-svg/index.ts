@@ -192,6 +192,9 @@ const s2v = {
         case 'circle':
           sketchGroup.layers.push(s2v.circle(item))
           break
+        case 'text':
+          sketchGroup.layers.push(s2v.text(item))
+          break
         case 'g':
           sketchGroup.layers.push(s2v.group(item))
         default:
@@ -212,7 +215,9 @@ const s2v = {
     name: svgData.attributes.id || 'Bitmap',
     do_objectID: uuid(),
     booleanOperation: FileFormat.BooleanOperation.None,
-    clippingMask: '',
+    clippingMaskMode: 0,
+    hasClippingMask: false,
+    clippingMask: `{{0,0}, {1,1}}`,
     exportOptions: sketchBlocks.emptyExportOptions(),
     fillReplacesImage: false,
     frame: sketchBlocks.emptyRect(
@@ -225,6 +230,12 @@ const s2v = {
       _class: 'MSJSONOriginalDataReference',
       _ref_class: 'MSImageData',
       _ref: uuid(),
+      // TODO: we need to find a way to copy this image file into the .sketch bundle.
+      // Otherwise, Sketch will complain about the file being corrupt on first open.
+      // Fortunately for us, Sketch will happily open the file anyway and fix it.
+      // But still, we should try to create completely valid .sketch documents here.
+      // This library feels like the wrong place to implement that stuff, so we may
+      // want to do this on a last pass before saving the file, in the `to-file` module.
       data: {
         // base64 -i input-file
         _data:
@@ -247,6 +258,58 @@ const s2v = {
     resizingType: FileFormat.ResizeType.Stretch,
     rotation: 0,
     shouldBreakMaskChain: false,
+  }),
+  text: (svgData: INode): FileFormat.Text => ({
+    _class: 'text',
+    name: svgData.attributes.id || 'Text',
+    attributedString: {
+      _class: 'attributedString',
+      // TODO: get style from SVG
+      attributes: [
+        {
+          _class: 'stringAttribute',
+          length: svgData.children.filter(item => item.type == 'text')[0].value
+            .length,
+          location: 0,
+          attributes: {
+            kerning: 0,
+            MSAttributedStringFontAttribute: {
+              _class: 'fontDescriptor',
+              attributes: {
+                name: 'Arial',
+                size: 14,
+              },
+            },
+          },
+        },
+      ],
+      string: svgData.children.filter(item => item.type == 'text')[0].value,
+    },
+    automaticallyDrawOnUnderlyingPath: false,
+    booleanOperation: FileFormat.BooleanOperation.None,
+    do_objectID: uuid(),
+    dontSynchroniseWithSymbol: false,
+    exportOptions: sketchBlocks.emptyExportOptions(),
+    frame: sketchBlocks.emptyRect(
+      parseInt(svgData.attributes.x),
+      parseInt(svgData.attributes.y),
+      parseInt(svgData.attributes.width),
+      parseInt(svgData.attributes.height)
+    ),
+    glyphBounds: '',
+    isFixedToViewport: false,
+    isFlippedHorizontal: false,
+    isFlippedVertical: false,
+    isLocked: false,
+    isVisible: true,
+    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
+    lineSpacingBehaviour: FileFormat.LineSpacingBehaviour.None,
+    nameIsFixed: false,
+    resizingConstraint: 63,
+    resizingType: FileFormat.ResizeType.Stretch,
+    rotation: 0,
+    shouldBreakMaskChain: false,
+    textBehaviour: FileFormat.TextBehaviour.Flexible,
   }),
 }
 export { s2v }
