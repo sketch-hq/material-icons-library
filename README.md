@@ -8,7 +8,6 @@ A proof of concept tool to generate Sketch files from other file formats
 
 ## Usage
 
+- `git submodule update --init` to fetch the latest icons from Google Material Design
 - `yarn install` to install all the dependencies
 - `yarn start` to turn all the assets in the `assets` folder into a .sketch document
-
-
