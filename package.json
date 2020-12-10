@@ -4,10 +4,10 @@
   "description": "A proof of concept tool to generate Sketch files from other file formats",
   "main": "index.ts",
   "scripts": {
-    "clean": "rm -Rf foo.sketch dist",
+    "clean": "rm -Rf *.sketch dist",
     "build": "yarn clean && tsc --outDir dist src/index.ts",
     "start": "yarn build && node dist/index.js",
-    "open": "yarn start && open -a Sketch foo.sketch",
+    "open": "yarn start && open -a Sketch material-design-icons.sketch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

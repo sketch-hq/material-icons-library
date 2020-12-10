@@ -11,13 +11,16 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { toFile } from './to-file'
 import { sketchBlocks } from './sketch-blocks'
 
-console.log(`\n\n⚗️  Sketch Synth v${process.env.npm_package_version}`)
+let outputFile = 'material-design-icons.sketch'
+
+console.log(`\n\n⚗️   Sketch Synth v${process.env.npm_package_version}`)
 
 var layerCollection = []
-const files = glob.sync('assets/material-design-icons/src/**/**/**/*.svg').slice(0,100)
+const files = glob.sync('assets/material-design-icons/src/**/**/**/*.svg')
+//.slice(0, 100) // Limit number of icons, for testing
 
 files.forEach((file, index) => {
-  console.log(file)
+  // console.log(file)
 
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
   const iconName = path.dirname(file).split('/').splice(-2)[0]
@@ -156,7 +159,9 @@ saveFile(layerCollection)
 
 // Write file
 function saveFile(layerCollection) {
-  console.log(`Saving file with ${layerCollection.length} layers`)
+  console.log(
+    `\n📦  Saving file with ${layerCollection.length} icons at '${outputFile}'`
+  )
   const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
 
   const meta: FileFormat.Meta = {
@@ -222,9 +227,9 @@ function saveFile(layerCollection) {
     user,
   }
 
-  toFile(contents, `./foo.sketch`)
+  toFile(contents, `./${outputFile}`)
     .then(() => {
-      console.log(`🎉 File saved successfully!`)
+      console.log(`🎉  File saved successfully!`)
     })
     .catch(err => {
       console.log(err)

@@ -7,14 +7,11 @@ import { hasMagic } from 'glob'
 
 const s2v = {
   parseStyle: (svgStyle: string): FileFormat.Style => {
-    console.log(`Parsing svg style: ${svgStyle}`)
+    // console.log(`Parsing svg style: ${svgStyle}`)
     // let style = sketchBlocks.emptyStyle()
     if (svgStyle == 'none') {
-      console.log('Empty style')
-
       return sketchBlocks.emptyStyle()
     } else {
-      console.log('Sample style')
       return sketchBlocks.sampleStyle()
     }
 
@@ -103,39 +100,39 @@ const s2v = {
 
     svgPathPoints.forEach((point: Point, index) => {
       // If point `moveTo`, this is a new path
-      console.log(point)
+      // console.log(point)
       // TODO: extract multiple Sketch paths from a single svg path
       // TODO: move this to sketchBlocks
       let sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
         point.x / width,
         point.y / height
       )
-      // if (point.curve) {
-      //   switch (point.curve.type) {
-      //     case 'cubic':
-      //       sketchPoint.curveMode = FileFormat.CurveMode.Asymmetric
-      //       // TODO: this curve translation clearly needs more work, because Sketch does not have
-      //       // anything like SVG's cubic curves, so we need to do some magic here. Check the code
-      //       // on Sketch's side to see what we're doing there.
-      //       sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
-      //         point.curve.y2 / height
-      //       }}`
-      //       sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
-      //         point.curve.y1 / height
-      //       }}`
-      //       sketchPoint.hasCurveTo = true
-      //       sketchPoint.hasCurveFrom = true
-      //       break
-      //     case 'arc':
-      //       console.log('⚠️ Arc curves not implemented yet')
-      //       break
-      //     case 'quadratic':
-      //       console.log('⚠️ Quadratic curves not implemented yet')
-      //       break
-      //     default:
-      //       break
-      //   }
-      // }
+      if (point.curve) {
+        switch (point.curve.type) {
+          case 'cubic':
+            sketchPoint.curveMode = FileFormat.CurveMode.Mirrored
+            // TODO: this curve translation clearly needs more work, because Sketch does not have
+            // anything like SVG's cubic curves, so we need to do some magic here. Check the code
+            // on Sketch's side to see what we're doing there.
+            sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
+              point.curve.y2 / height
+            }}`
+            sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
+              point.curve.y1 / height
+            }}`
+            sketchPoint.hasCurveTo = false // This is actually the curveFrom of the *next* point in the Curve
+            sketchPoint.hasCurveFrom = false
+            break
+          case 'arc':
+            console.log('⚠️  Arc curves not implemented yet')
+            break
+          case 'quadratic':
+            console.log('⚠️  Quadratic curves not implemented yet')
+            break
+          default:
+            break
+        }
+      }
 
       // console.log(sketchPoint)
       // if (point.moveTo == undefined) {
@@ -323,9 +320,6 @@ const s2v = {
     textBehaviour: FileFormat.TextBehaviour.Flexible,
   }),
   polygon: (svgData: INode): FileFormat.ShapePath => {
-    console.log(`Parsing polygon:`)
-    console.log(svgData)
-
     let width = 24
     let height = 24
     const svgPolygon: Polygon = {
