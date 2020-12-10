@@ -64,13 +64,13 @@ const s2v = {
     return sketchRectangle
   },
   path: (svgData: INode): FileFormat.ShapePath => {
-    // TODO: we may need to recalculate the frame for the pkath after adding the points
+    // TODO: we may need to recalculate the frame for the path after adding the points
     // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
     // By now, we'll use a fixed width and height for this demo
 
     // TODO: `stroke` support
-    let width = 500 // TODO: Calculate this properly
-    let height = 800 // TODO: Calculate this properly
+    let width = 24 // TODO: Calculate this properly
+    let height = 24 // TODO: Calculate this properly
     // https://www.w3.org/TR/SVG2/paths.html#PathElement
     // d | pathLength (optional) | id | style | class |
     let pathDefaultAttributes = {
