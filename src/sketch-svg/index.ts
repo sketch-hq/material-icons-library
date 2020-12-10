@@ -2,13 +2,21 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { INode } from 'svgson'
 import { v4 as uuid } from 'uuid'
 import { sketchBlocks } from '../sketch-blocks'
-import { Path, Point, toPoints } from 'svg-points'
+import { Path, Point, Polygon, toPoints } from 'svg-points'
+import { hasMagic } from 'glob'
 
 const s2v = {
   parseStyle: (svgStyle: string): FileFormat.Style => {
-    console.log(`Parsing ${svgStyle}`)
+    console.log(`Parsing svg style: ${svgStyle}`)
     // let style = sketchBlocks.emptyStyle()
-    return sketchBlocks.sampleStyle()
+    if (svgStyle == 'none') {
+      console.log('Empty style')
+
+      return sketchBlocks.emptyStyle()
+    } else {
+      console.log('Sample style')
+      return sketchBlocks.sampleStyle()
+    }
 
     /*{
       _class: 'style',
@@ -38,17 +46,17 @@ const s2v = {
   rect: (svgData: INode): FileFormat.Rectangle => {
     let sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
       svgData.attributes.id || 'rectangle',
-      parseInt(svgData.attributes.x) || 0,
-      parseInt(svgData.attributes.y) || 0,
-      parseInt(svgData.attributes.width) || 100,
-      parseInt(svgData.attributes.height) || 100
+      parseFloat(svgData.attributes.x) || 0,
+      parseFloat(svgData.attributes.y) || 0,
+      parseFloat(svgData.attributes.width) || 100,
+      parseFloat(svgData.attributes.height) || 100
     )
     if (svgData.attributes.rx || svgData.attributes.ry) {
       // TODO: SVG supports an `ry` attribute for vertical corner radius (see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect)
       // As far as I know, we don't have anything similar in Sketch, and I doubt it makes sense to try to implement it,
       // but I think it's worth mentioning here. This implementation just takes the first it finds and calls it a day.
       let cornerRadius =
-        parseInt(svgData.attributes.rx) || parseInt(svgData.attributes.ry)
+        parseFloat(svgData.attributes.rx) || parseFloat(svgData.attributes.ry)
       sketchRectangle.fixedRadius = cornerRadius
       sketchRectangle.points.forEach(point => {
         point.cornerRadius = cornerRadius
@@ -57,9 +65,10 @@ const s2v = {
         FileFormat.PointsRadiusBehaviour.Rounded
     }
     if (svgData.attributes.style) {
-      // TODO: parse the real style, instead of using a default style
-      let style = s2v.parseStyle(svgData.attributes.style)
-      sketchRectangle.style = style
+      sketchRectangle.style = s2v.parseStyle(svgData.attributes.style)
+    }
+    if (svgData.attributes.fill) {
+      sketchRectangle.style = s2v.parseStyle(svgData.attributes.fill)
     }
     return sketchRectangle
   },
@@ -80,9 +89,7 @@ const s2v = {
     }
     let attributes = { ...pathDefaultAttributes, ...svgData.attributes }
     // style | script | mask | marker | clipPath | pattern | linearGradient | radialGradient | pattern
-    let content = svgData.children
-    // console.log(attributes)
-    // console.log(content)
+    // let content = svgData.children
 
     const svgPath: Path = {
       type: 'path',
@@ -103,32 +110,32 @@ const s2v = {
         point.x / width,
         point.y / height
       )
-      if (point.curve) {
-        switch (point.curve.type) {
-          case 'cubic':
-            sketchPoint.curveMode = FileFormat.CurveMode.Asymmetric
-            // TODO: this curve translation clearly needs more work, because Sketch does not have
-            // anything like SVG's cubic curves, so we need to do some magic here. Check the code
-            // on Sketch's side to see what we're doing there.
-            sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
-              point.curve.y2 / height
-            }}`
-            sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
-              point.curve.y1 / height
-            }}`
-            sketchPoint.hasCurveTo = true
-            sketchPoint.hasCurveFrom = true
-            break
-          case 'arc':
-            console.log('⚠️ Arc curves not implemented yet')
-            break
-          case 'quadratic':
-            console.log('⚠️ Quadratic curves not implemented yet')
-            break
-          default:
-            break
-        }
-      }
+      // if (point.curve) {
+      //   switch (point.curve.type) {
+      //     case 'cubic':
+      //       sketchPoint.curveMode = FileFormat.CurveMode.Asymmetric
+      //       // TODO: this curve translation clearly needs more work, because Sketch does not have
+      //       // anything like SVG's cubic curves, so we need to do some magic here. Check the code
+      //       // on Sketch's side to see what we're doing there.
+      //       sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
+      //         point.curve.y2 / height
+      //       }}`
+      //       sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
+      //         point.curve.y1 / height
+      //       }}`
+      //       sketchPoint.hasCurveTo = true
+      //       sketchPoint.hasCurveFrom = true
+      //       break
+      //     case 'arc':
+      //       console.log('⚠️ Arc curves not implemented yet')
+      //       break
+      //     case 'quadratic':
+      //       console.log('⚠️ Quadratic curves not implemented yet')
+      //       break
+      //     default:
+      //       break
+      //   }
+      // }
 
       // console.log(sketchPoint)
       // if (point.moveTo == undefined) {
@@ -140,7 +147,7 @@ const s2v = {
     })
 
     let sketchPath = sketchBlocks.emptyShapePath('path', 0, 0, width, height)
-    sketchPath.style = sketchBlocks.sampleStyle() // TODO: get actual style from SVG
+    sketchPath.style = s2v.parseStyle(svgData.attributes.fill)
     if (attributes.id) {
       sketchPath.name = attributes.id
     }
@@ -150,29 +157,29 @@ const s2v = {
   ellipse: (svgData: INode): FileFormat.Oval => {
     return sketchBlocks.emptyCircle(
       svgData.attributes.id,
-      parseInt(svgData.attributes.cx) - parseInt(svgData.attributes.rx),
-      parseInt(svgData.attributes.cy) - parseInt(svgData.attributes.ry),
-      parseInt(svgData.attributes.rx) * 2,
-      parseInt(svgData.attributes.ry) * 2
+      parseFloat(svgData.attributes.cx) - parseFloat(svgData.attributes.rx),
+      parseFloat(svgData.attributes.cy) - parseFloat(svgData.attributes.ry),
+      parseFloat(svgData.attributes.rx) * 2,
+      parseFloat(svgData.attributes.ry) * 2
     )
   },
   circle: (svgData: INode): FileFormat.Oval => {
     return sketchBlocks.emptyCircle(
       svgData.attributes.id,
-      parseInt(svgData.attributes.cx) - parseInt(svgData.attributes.r),
-      parseInt(svgData.attributes.cy) - parseInt(svgData.attributes.r),
-      parseInt(svgData.attributes.r) * 2,
-      parseInt(svgData.attributes.r) * 2
+      parseFloat(svgData.attributes.cx) - parseFloat(svgData.attributes.r),
+      parseFloat(svgData.attributes.cy) - parseFloat(svgData.attributes.r),
+      parseFloat(svgData.attributes.r) * 2,
+      parseFloat(svgData.attributes.r) * 2
     )
   },
   group: (svgData: INode): FileFormat.Group => {
     // Hello recursivity, do not hesitate to call yourself if you need any help
     let sketchGroup: FileFormat.Group = sketchBlocks.emptyGroup(
       svgData.attributes.id || 'Group',
-      parseInt(svgData.attributes.x) || 0,
-      parseInt(svgData.attributes.y) || 0,
-      parseInt(svgData.attributes.width) || 100,
-      parseInt(svgData.attributes.height) || 100
+      parseFloat(svgData.attributes.x) || 0,
+      parseFloat(svgData.attributes.y) || 0,
+      parseFloat(svgData.attributes.width) || 24,
+      parseFloat(svgData.attributes.height) || 24
     )
     // Traverse Group contents (here's where you'll wish you had made all the parsing code
     // reusable in a library, )
@@ -197,6 +204,10 @@ const s2v = {
           break
         case 'g':
           sketchGroup.layers.push(s2v.group(item))
+          break
+        case 'polygon':
+          sketchGroup.layers.push(s2v.polygon(item))
+          break
         default:
           console.warn(
             `⚠️  We don't know what to do with '${item.name}' elements yet.`
@@ -221,10 +232,10 @@ const s2v = {
     exportOptions: sketchBlocks.emptyExportOptions(),
     fillReplacesImage: false,
     frame: sketchBlocks.emptyRect(
-      parseInt(svgData.attributes.x),
-      parseInt(svgData.attributes.y),
-      parseInt(svgData.attributes.width),
-      parseInt(svgData.attributes.height)
+      parseFloat(svgData.attributes.x),
+      parseFloat(svgData.attributes.y),
+      parseFloat(svgData.attributes.width),
+      parseFloat(svgData.attributes.height)
     ),
     image: {
       _class: 'MSJSONOriginalDataReference',
@@ -291,10 +302,10 @@ const s2v = {
     dontSynchroniseWithSymbol: false,
     exportOptions: sketchBlocks.emptyExportOptions(),
     frame: sketchBlocks.emptyRect(
-      parseInt(svgData.attributes.x),
-      parseInt(svgData.attributes.y),
-      parseInt(svgData.attributes.width),
-      parseInt(svgData.attributes.height)
+      parseFloat(svgData.attributes.x),
+      parseFloat(svgData.attributes.y),
+      parseFloat(svgData.attributes.width),
+      parseFloat(svgData.attributes.height)
     ),
     glyphBounds: '',
     isFixedToViewport: false,
@@ -311,5 +322,35 @@ const s2v = {
     shouldBreakMaskChain: false,
     textBehaviour: FileFormat.TextBehaviour.Flexible,
   }),
+  polygon: (svgData: INode): FileFormat.ShapePath => {
+    console.log(`Parsing polygon:`)
+    console.log(svgData)
+
+    let width = 24
+    let height = 24
+    const svgPolygon: Polygon = {
+      type: 'polygon',
+      points: svgData.attributes.points,
+    }
+    let svgPolygonPoints: Point[] = toPoints(svgPolygon)
+    let sketchPolygonPoints: FileFormat.CurvePoint[] = []
+    svgPolygonPoints.forEach(point => {
+      let sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
+        point.x / width,
+        point.y / height
+      )
+      sketchPolygonPoints.push(sketchPoint)
+    })
+    let sketchPath = sketchBlocks.emptyShapePath(
+      svgData.attributes.id || 'Polygon',
+      0,
+      0,
+      width,
+      height
+    )
+    sketchPath.style = s2v.parseStyle(svgData.attributes.fill)
+    sketchPath.points = sketchPolygonPoints
+    return sketchPath
+  },
 }
 export { s2v }

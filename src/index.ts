@@ -28,8 +28,8 @@ files.forEach((file, index) => {
   console.log(`\nConverting "${svgName}.svg"`)
   const json = parseSync(svgData)
 
-  const width: number = parseInt(json.attributes.width) || 100
-  const height: number = parseInt(json.attributes.height) || 100
+  const width: number = parseFloat(json.attributes.width) || 100
+  const height: number = parseFloat(json.attributes.height) || 100
   console.log(`  Dimensions: ${width}x${height}`)
 
   /*
@@ -63,6 +63,9 @@ files.forEach((file, index) => {
         break
       case 'g':
         symbolMaster.layers.push(s2v.group(child))
+        break
+      case 'polygon':
+        symbolMaster.layers.push(s2v.polygon(child))
         break
 
       case 'defs':
@@ -130,7 +133,6 @@ files.forEach((file, index) => {
         symbolMaster.layers.push(s2v.text(child))
         break
       case 'line':
-      case 'polygon':
       case 'polyline':
       case 'filter':
       case 'font':
