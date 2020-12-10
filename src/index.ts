@@ -14,11 +14,17 @@ import { sketchBlocks } from './sketch-blocks'
 console.log(`\n\n⚗️  Sketch Synth v${process.env.npm_package_version}`)
 
 var layerCollection = []
-const files = glob.sync('assets/**/*.svg')
+const files = glob.sync('assets/**/**/**/**/*.svg')
 
 files.forEach((file, index) => {
+  console.log(file)
+
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
-  const svgName = path.basename(file, '.svg')
+  const iconName = path.dirname(file).split('/').splice(-2)[0]
+  const svgName = file
+    .replace('assets/', '')
+    .replace('20px.svg', `${iconName} 20px`)
+    .replace('24px.svg', `${iconName} 24px`) //
   console.log(`\nConverting "${svgName}.svg"`)
   const json = parseSync(svgData)
 
@@ -31,12 +37,14 @@ files.forEach((file, index) => {
   although they're drawn in the document, selecting them does not update
   the Inspector data like normal Symbol Masters do.
   */
+  let columns = 30
+  let iconSpacing = 50
   var symbolMaster: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
     svgName,
     width,
     height,
-    index * 100,
-    0
+    (index % columns) * iconSpacing,
+    Math.floor(index / columns) * iconSpacing
   )
   json.children.forEach((child, index) => {
     console.log(child)
