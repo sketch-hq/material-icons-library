@@ -385,122 +385,126 @@ const sketchBlocks = {
       },
     ]
   },
+  emptyStyle: (): FileFormat.Style => ({
+    _class: 'style',
+    do_objectID: uuid(),
+    endMarkerType: 0,
+    miterLimit: 10,
+    startMarkerType: 0,
+    windingRule: 1,
+    blur: {
+      _class: 'blur',
+      isEnabled: false,
+      center: '{0.5, 0.5}',
+      motionAngle: 0,
+      radius: 10,
+      saturation: 1,
+      type: 0,
+    },
+    borderOptions: {
+      _class: 'borderOptions',
+      isEnabled: false,
+      dashPattern: [],
+      lineCapStyle: 0,
+      lineJoinStyle: 0,
+    },
+    borders: [
+      {
+        _class: 'border',
+        isEnabled: false,
+        fillType: 0,
+        color: {
+          _class: 'color',
+          alpha: 1,
+          blue: 0.592,
+          green: 0.592,
+          red: 0.592,
+        },
+        contextSettings: {
+          _class: 'graphicsContextSettings',
+          blendMode: 0,
+          opacity: 1,
+        },
+        gradient: {
+          _class: 'gradient',
+          elipseLength: 0,
+          from: '{0.5, 0}',
+          gradientType: 0,
+          to: '{0.5, 1}',
+          stops: [
+            {
+              _class: 'gradientStop',
+              position: 0,
+              color: sketchBlocks.colorWhite(),
+            },
+            {
+              _class: 'gradientStop',
+              position: 1,
+              color: sketchBlocks.colorBlack(),
+            },
+          ],
+        },
+        position: 1,
+        thickness: 0.1,
+      },
+    ],
+    colorControls: {
+      _class: 'colorControls',
+      isEnabled: false,
+      brightness: 0,
+      contrast: 1,
+      hue: 0,
+      saturation: 1,
+    },
+    contextSettings: {
+      _class: 'graphicsContextSettings',
+      blendMode: 0,
+      opacity: 1,
+    },
+    fills: [
+      {
+        _class: 'fill',
+        isEnabled: false,
+        fillType: FileFormat.FillType.Color,
+        color: sketchBlocks.colorGreyTrans(),
+        contextSettings: {
+          _class: 'graphicsContextSettings',
+          blendMode: FileFormat.BlendMode.Normal,
+          opacity: 1,
+        },
+        gradient: {
+          _class: 'gradient',
+          elipseLength: 0,
+          from: '{0.5, 0}',
+          gradientType: FileFormat.GradientType.Linear,
+          to: '{0.5, 1}',
+          stops: [
+            {
+              _class: 'gradientStop',
+              position: 0,
+              color: sketchBlocks.colorWhite(),
+            },
+            {
+              _class: 'gradientStop',
+              position: 1,
+              color: sketchBlocks.colorBlack(),
+            },
+          ],
+        },
+        noiseIndex: 0,
+        noiseIntensity: 0,
+        patternFillType: FileFormat.PatternFillType.Fill,
+        patternTileScale: 1,
+      },
+    ],
+    innerShadows: [],
+    shadows: [],
+  }),
   sampleStyle: (): FileFormat.Style => {
-    return {
-      _class: 'style',
-      do_objectID: '63CCF63E-20BD-46E7-87A5-8540F7D34036', // is this a bug, or a feature?
-      endMarkerType: 0,
-      miterLimit: 10,
-      startMarkerType: 0,
-      windingRule: 1,
-      blur: {
-        _class: 'blur',
-        isEnabled: false,
-        center: '{0.5, 0.5}',
-        motionAngle: 0,
-        radius: 10,
-        saturation: 1,
-        type: 0,
-      },
-      borderOptions: {
-        _class: 'borderOptions',
-        isEnabled: true,
-        dashPattern: [],
-        lineCapStyle: 0,
-        lineJoinStyle: 0,
-      },
-      borders: [
-        {
-          _class: 'border',
-          isEnabled: false,
-          fillType: 0,
-          color: {
-            _class: 'color',
-            alpha: 1,
-            blue: 0.592,
-            green: 0.592,
-            red: 0.592,
-          },
-          contextSettings: {
-            _class: 'graphicsContextSettings',
-            blendMode: 0,
-            opacity: 1,
-          },
-          gradient: {
-            _class: 'gradient',
-            elipseLength: 0,
-            from: '{0.5, 0}',
-            gradientType: 0,
-            to: '{0.5, 1}',
-            stops: [
-              {
-                _class: 'gradientStop',
-                position: 0,
-                color: sketchBlocks.colorWhite(),
-              },
-              {
-                _class: 'gradientStop',
-                position: 1,
-                color: sketchBlocks.colorBlack(),
-              },
-            ],
-          },
-          position: 1,
-          thickness: 0.1,
-        },
-      ],
-      colorControls: {
-        _class: 'colorControls',
-        isEnabled: false,
-        brightness: 0,
-        contrast: 1,
-        hue: 0,
-        saturation: 1,
-      },
-      contextSettings: {
-        _class: 'graphicsContextSettings',
-        blendMode: 0,
-        opacity: 1,
-      },
-      fills: [
-        {
-          _class: 'fill',
-          isEnabled: true,
-          fillType: FileFormat.FillType.Color,
-          color: sketchBlocks.colorGreyTrans(),
-          contextSettings: {
-            _class: 'graphicsContextSettings',
-            blendMode: FileFormat.BlendMode.Normal,
-            opacity: 1,
-          },
-          gradient: {
-            _class: 'gradient',
-            elipseLength: 0,
-            from: '{0.5, 0}',
-            gradientType: FileFormat.GradientType.Linear,
-            to: '{0.5, 1}',
-            stops: [
-              {
-                _class: 'gradientStop',
-                position: 0,
-                color: sketchBlocks.colorWhite(),
-              },
-              {
-                _class: 'gradientStop',
-                position: 1,
-                color: sketchBlocks.colorBlack(),
-              },
-            ],
-          },
-          noiseIndex: 0,
-          noiseIntensity: 0,
-          patternFillType: FileFormat.PatternFillType.Fill,
-          patternTileScale: 1,
-        },
-      ],
-      innerShadows: [],
-      shadows: [],
-    }
+    let style = sketchBlocks.emptyStyle()
+    style.borders[0].isEnabled = true
+    style.fills[0].isEnabled = true
+    return style
   },
 }
 export { sketchBlocks }
