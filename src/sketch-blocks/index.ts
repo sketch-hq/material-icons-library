@@ -408,7 +408,27 @@ const sketchBlocks = {
       lineCapStyle: 0,
       lineJoinStyle: 0,
     },
-    borders: [
+    borders: [],
+    colorControls: {
+      _class: 'colorControls',
+      isEnabled: false,
+      brightness: 0,
+      contrast: 1,
+      hue: 0,
+      saturation: 1,
+    },
+    contextSettings: {
+      _class: 'graphicsContextSettings',
+      blendMode: 0,
+      opacity: 1,
+    },
+    fills: [],
+    innerShadows: [],
+    shadows: [],
+  }),
+  sampleStyle: (): FileFormat.Style => {
+    let style = sketchBlocks.emptyStyle()
+    style.borders = [
       {
         _class: 'border',
         isEnabled: false,
@@ -447,26 +467,13 @@ const sketchBlocks = {
         position: 1,
         thickness: 0.1,
       },
-    ],
-    colorControls: {
-      _class: 'colorControls',
-      isEnabled: false,
-      brightness: 0,
-      contrast: 1,
-      hue: 0,
-      saturation: 1,
-    },
-    contextSettings: {
-      _class: 'graphicsContextSettings',
-      blendMode: 0,
-      opacity: 1,
-    },
-    fills: [
+    ]
+    style.fills = [
       {
         _class: 'fill',
-        isEnabled: false,
+        isEnabled: true,
         fillType: FileFormat.FillType.Color,
-        color: sketchBlocks.colorGreyTrans(),
+        color: sketchBlocks.colorBlack(),
         contextSettings: {
           _class: 'graphicsContextSettings',
           blendMode: FileFormat.BlendMode.Normal,
@@ -496,14 +503,7 @@ const sketchBlocks = {
         patternFillType: FileFormat.PatternFillType.Fill,
         patternTileScale: 1,
       },
-    ],
-    innerShadows: [],
-    shadows: [],
-  }),
-  sampleStyle: (): FileFormat.Style => {
-    let style = sketchBlocks.emptyStyle()
-    style.borders[0].isEnabled = true
-    style.fills[0].isEnabled = true
+    ]
     return style
   },
 }
