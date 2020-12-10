@@ -14,7 +14,7 @@ import { sketchBlocks } from './sketch-blocks'
 console.log(`\n\n⚗️  Sketch Synth v${process.env.npm_package_version}`)
 
 var layerCollection = []
-const files = glob.sync('assets/**/**/**/**/*.svg')
+const files = glob.sync('assets/material-design-icons/src/**/**/**/*.svg').slice(0,100)
 
 files.forEach((file, index) => {
   console.log(file)
@@ -22,15 +22,15 @@ files.forEach((file, index) => {
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
   const iconName = path.dirname(file).split('/').splice(-2)[0]
   const svgName = file
-    .replace('assets/', '')
+    .replace('assets/material-design-icons/src/', '')
     .replace('20px.svg', `${iconName} 20px`)
     .replace('24px.svg', `${iconName} 24px`) //
-  console.log(`\nConverting "${svgName}.svg"`)
+  // console.log(`\nConverting "${svgName}.svg"`)
   const json = parseSync(svgData)
 
   const width: number = parseFloat(json.attributes.width) || 100
   const height: number = parseFloat(json.attributes.height) || 100
-  console.log(`  Dimensions: ${width}x${height}`)
+  // console.log(`  Dimensions: ${width}x${height}`)
 
   /*
   TODO: There's something wrong with the way I'm creating these, because
@@ -47,7 +47,7 @@ files.forEach((file, index) => {
     Math.floor(index / columns) * iconSpacing
   )
   json.children.forEach((child, index) => {
-    console.log(child)
+    // console.log(child)
     switch (child.name) {
       case 'path':
         symbolMaster.layers.push(s2v.path(child))
@@ -75,7 +75,7 @@ files.forEach((file, index) => {
         // `linearGradient`, `radialGradient` and `pattern` (although we may also ignore this last one)
         // For more info, check https://www.w3.org/TR/SVG/struct.html#DefsElement
         child.children.forEach(def => {
-          console.log(def)
+          // console.log(def)
           switch (def.name) {
             case 'linearGradient':
               // https://www.w3.org/TR/SVG/pservers.html#LinearGradientElement
@@ -103,17 +103,17 @@ files.forEach((file, index) => {
               let stops = def.children.filter(element => element.name == 'stop')
               stops.forEach(stop => {
                 // https://www.w3.org/TR/SVG/pservers.html#StopElement
-                console.log(stop)
-                console.log(`Linear Gradient Stop:`)
-                console.log(`\tOffset: ${stop.attributes.offset}`)
+                // console.log(stop)
+                // console.log(`Linear Gradient Stop:`)
+                // console.log(`\tOffset: ${stop.attributes.offset}`)
                 // Style can be an attribute or a child element of a stop 🙃
                 // https://www.w3.org/TR/SVG/styling.html#StyleAttribute
                 // https://www.w3.org/TR/SVG/styling.html#StyleElement
-                console.log(`\tStyle: ${stop.attributes.style}`)
+                // console.log(`\tStyle: ${stop.attributes.style}`)
               })
               break
             case 'radialGradient':
-              console.log(`radialGradient`)
+              // console.log(`radialGradient`)
               //
               // def.attributes
               break
@@ -224,7 +224,7 @@ function saveFile(layerCollection) {
 
   toFile(contents, `./foo.sketch`)
     .then(() => {
-      console.log(`done`)
+      console.log(`🎉 File saved successfully!`)
     })
     .catch(err => {
       console.log(err)
