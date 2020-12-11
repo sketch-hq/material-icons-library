@@ -73,20 +73,84 @@ const s2v = {
     }
     return sketchRectangle
   },
-  sketchPathFromSVGPath: (path: string): FileFormat.ShapePath => {
-    let width = 24 // TODO: calculate this
-    let height = 24
+  path: (svgData: INode): FileFormat.ShapePath | FileFormat.ShapeGroup => {
+    // https://www.w3.org/TR/SVG2/paths.html#PathElement
+
+    // TODO: we may need to recalculate the frame for the path after adding the points
+    // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
+    // By now, we'll use a fixed width and height for this demo
+
+    // TODO: `stroke` support
+    let width = 24 // TODO: Calculate this properly
+    let height = 24 // TODO: Calculate this properly
+
+    /**
+     * We don't really need to split paths or know how many of them are there,
+     * or make special code paths for 1 vs multiple paths, do we?
+     * We just need to start painting, and keep pushing paths to the container...
+     */
+    let container = sketchBlocks.emptyShapeGroup(
+      svgData.attributes.id,
+      parseFloat(svgData.attributes.x),
+      parseFloat(svgData.attributes.y),
+      parseFloat(svgData.attributes.width) || width,
+      parseFloat(svgData.attributes.height) || height
+    )
+    container.style = s2v.parseStyle(svgData)
     let svgPath: Path = {
       type: 'path',
-      d: path,
+      d: svgData.attributes.d,
     }
     let svgPathPoints: Point[] = toPoints(svgPath)
-    let sketchPathPoints: FileFormat.CurvePoint[] = []
+    let firstPath = true
+    let currentPath: FileFormat.ShapePath
+    let currentPoints: FileFormat.CurvePoint[]
+    let currentControlPoints
+    let currentPointCounter
 
-    let curvePointData = []
-    svgPathPoints.forEach((point: Point, index) => {
-      // If point `moveTo`, this is a new path
-      // TODO: extract multiple Sketch paths from a single svg path
+    svgPathPoints.forEach((point, index) => {
+      if (point.moveTo) {
+        // Store the current path (if any) in the container and create a new one.
+        // To store the current path, we first need to assign the right curve points
+        if (!firstPath) {
+          // Update curve control points
+          if (currentControlPoints.length > 0) {
+            currentControlPoints.forEach(pointData => {
+              let index = pointData[0]
+              let curve: CurveCubic = pointData[1]
+              let thisPoint = currentPoints[index]
+              let nextPoint = currentPoints[index - 1]
+              thisPoint.curveMode = FileFormat.CurveMode.Mirrored
+              thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${
+                curve.y2 / height
+              }}`
+              thisPoint.hasCurveTo = true
+              if (nextPoint) {
+                nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
+                  curve.y1 / height
+                }}`
+                nextPoint.hasCurveFrom = true
+              }
+            })
+          }
+          currentPath.points = currentPoints
+          // Store path in the container
+          container.layers.push(currentPath)
+        } else {
+          firstPath = false
+        }
+        // Start new Path from zero
+        currentPath = sketchBlocks.emptyShapePath(
+          'Path',
+          parseFloat(svgData.attributes.x),
+          parseFloat(svgData.attributes.y),
+          parseFloat(svgData.attributes.width) || width,
+          parseFloat(svgData.attributes.height) || height
+        )
+        currentPoints = []
+        currentControlPoints = []
+        currentPointCounter = 0
+      }
       let sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
         point.x / width,
         point.y / height
@@ -94,7 +158,7 @@ const s2v = {
       if (point.curve) {
         switch (point.curve.type) {
           case 'cubic':
-            curvePointData.push([index, point.curve])
+            currentControlPoints.push([currentPointCounter, point.curve])
             break
           case 'arc':
             // console.log('⚠️  Arc curves not implemented yet')
@@ -106,107 +170,36 @@ const s2v = {
             break
         }
       }
-      if (point.moveTo) {
-        // console.log(`We should close the current curve, and start a new one...`)
-      }
-      sketchPathPoints.push(sketchPoint)
-    })
-    if (curvePointData.length > 0) {
-      curvePointData.forEach(pointData => {
-        let index = pointData[0]
-        let curve: CurveCubic = pointData[1]
-        let thisPoint = sketchPathPoints[index]
-        let nextPoint = sketchPathPoints[index - 1]
-        thisPoint.curveMode = FileFormat.CurveMode.Mirrored
-        thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${curve.y2 / height}}`
-        thisPoint.hasCurveTo = true
-        if (nextPoint) {
-          nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
-            curve.y1 / height
-          }}`
-          nextPoint.hasCurveFrom = true
+      currentPoints.push(sketchPoint)
+      currentPointCounter++
+      if (index == svgPathPoints.length - 1) {
+        // This is the last point on the path group, so we need to draw it
+        // and then commit the path. This code is duplicated. Sue me.
+        if (currentControlPoints.length > 0) {
+          currentControlPoints.forEach(pointData => {
+            let index = pointData[0]
+            let curve: CurveCubic = pointData[1]
+            let thisPoint = currentPoints[index]
+            let nextPoint = currentPoints[index - 1]
+            thisPoint.curveMode = FileFormat.CurveMode.Mirrored
+            thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${
+              curve.y2 / height
+            }}`
+            thisPoint.hasCurveTo = true
+            if (nextPoint) {
+              nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
+                curve.y1 / height
+              }}`
+              nextPoint.hasCurveFrom = true
+            }
+          })
         }
-      })
-    }
-
-    let sketchPath = sketchBlocks.emptyShapePath('path', 0, 0, width, height)
-    sketchPath.points = sketchPathPoints
-    return sketchPath
-  },
-  path: (svgData: INode): FileFormat.ShapePath | FileFormat.ShapeGroup => {
-    // TODO: we may need to recalculate the frame for the path after adding the points
-    // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
-    // By now, we'll use a fixed width and height for this demo
-
-    // TODO: `stroke` support
-    let width = 24 // TODO: Calculate this properly
-    let height = 24 // TODO: Calculate this properly
-    // https://www.w3.org/TR/SVG2/paths.html#PathElement
-    // d | pathLength (optional) | id | style | class |
-
-    let numberOfPaths = svgData.attributes.d.split(/m|M/).length - 1
-    if (numberOfPaths > 1) {
-      // First, make a container path for all
-      let container: FileFormat.ShapeGroup = sketchBlocks.emptyShapeGroup(
-        svgData.attributes.id,
-        parseFloat(svgData.attributes.x),
-        parseFloat(svgData.attributes.y),
-        parseFloat(svgData.attributes.width) || 24,
-        parseFloat(svgData.attributes.height) || 24
-      )
-
-      // console.log(svgData.attributes.d)
-
-      let numberOfAbsolutePaths = svgData.attributes.d.split('M').length - 1
-      let paths = svgData.attributes.d
-        .split('M') // we'll split `m` paths later on
-        .splice(1, numberOfAbsolutePaths)
-        .map(item => `M${item}`)
-      paths.forEach(path => {
-        // if (path.includes('m')) {
-        //   // There are subpaths in this path, so we need to split it _again_,
-        //   // but this time we need to use a different approach. We can't split them
-        //   // using a string-only approach, because then we'll miss important information about
-        //   // the position of the points (`m` moves the cursor relative to the current position, after all)
-        //   // So we're going to send this path over to toPoints(), and then back using toPath(),
-        //   // to hopefully get multiple paths with their points in absolute units
-        //   let svgPath: Path = {
-        //     type: 'path',
-        //     d: path,
-        //   }
-        //   let svgPathPoints: Point[] = toPoints(svgPath)
-        //   let splitPaths = []
-        //   let tmpPath: Point[] = []
-        //   svgPathPoints.forEach(point => {
-        //     if (point.moveTo) {
-        //       splitPaths.push(tmpPath)
-        //       tmpPath = []
-        //     }
-        //     tmpPath.push(point)
-        //   })
-        //   splitPaths.forEach(path => {
-        //     if (path.length > 0) {
-        //       // console.log(path)
-        //       let sketchPath = s2v.sketchPathFromSVGPath(toPath(path))
-        //       sketchPath.name = svgData.attributes.id || 'path'
-        //       container.layers.push(sketchPath)
-        //     }
-        //   })
-        // } else {
-        let sketchPath = s2v.sketchPathFromSVGPath(path)
-        sketchPath.name = svgData.attributes.id || 'path'
-        container.layers.push(sketchPath)
-        // }
-      })
-      container.style = s2v.parseStyle(svgData)
-      return container
-    } else {
-      // make single path and return it
-      let sketchPath = s2v.sketchPathFromSVGPath(svgData.attributes.d)
-      sketchPath.name = svgData.attributes.id || 'path'
-      sketchPath.style = s2v.parseStyle(svgData)
-      return sketchPath
-    }
+        currentPath.points = currentPoints
+        // Store path in the container
+        container.layers.push(currentPath)
+      }
+    })
+    return container
   },
   ellipse: (svgData: INode): FileFormat.Oval => {
     return sketchBlocks.emptyCircle(
