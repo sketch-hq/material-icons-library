@@ -34,3 +34,7 @@ jobs:
         run: yarn install
       - name: Run sketch-synth
         run: yarn start
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Google Material Icons
+          path: material-design-icons.sketch
