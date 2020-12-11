@@ -6,13 +6,17 @@ import { CurveCubic, Path, Point, Polygon, toPoints } from 'svg-points'
 import { hasMagic } from 'glob'
 
 const s2v = {
-  parseStyle: (svgStyle: string): FileFormat.Style => {
+  parseStyle: (svgData: INode): FileFormat.Style => {
     // console.log(`Parsing svg style: ${svgStyle}`)
     // let style = sketchBlocks.emptyStyle()
-    if (svgStyle == 'none') {
+    if (svgData.attributes.fill == 'none') {
       return sketchBlocks.emptyStyle()
     } else {
-      return sketchBlocks.sampleStyle()
+      let style = sketchBlocks.sampleStyle()
+      if (svgData.attributes.opacity) {
+        style.fills[0].color.alpha = parseFloat(svgData.attributes.opacity)
+      }
+      return style
     }
 
     /*{
@@ -62,10 +66,10 @@ const s2v = {
         FileFormat.PointsRadiusBehaviour.Rounded
     }
     if (svgData.attributes.style) {
-      sketchRectangle.style = s2v.parseStyle(svgData.attributes.style)
+      sketchRectangle.style = s2v.parseStyle(svgData)
     }
     if (svgData.attributes.fill) {
-      sketchRectangle.style = s2v.parseStyle(svgData.attributes.fill)
+      sketchRectangle.style = s2v.parseStyle(svgData)
     }
     return sketchRectangle
   },
@@ -142,7 +146,7 @@ const s2v = {
     }
 
     let sketchPath = sketchBlocks.emptyShapePath('path', 0, 0, width, height)
-    sketchPath.style = s2v.parseStyle(svgData.attributes.fill)
+    sketchPath.style = s2v.parseStyle(svgData)
     if (attributes.id) {
       sketchPath.name = attributes.id
     }
@@ -340,7 +344,7 @@ const s2v = {
       width,
       height
     )
-    sketchPath.style = s2v.parseStyle(svgData.attributes.fill)
+    sketchPath.style = s2v.parseStyle(svgData)
     sketchPath.points = sketchPolygonPoints
     return sketchPath
   },
