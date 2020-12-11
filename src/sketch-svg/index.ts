@@ -73,33 +73,15 @@ const s2v = {
     }
     return sketchRectangle
   },
-  path: (svgData: INode): FileFormat.ShapePath => {
-    // TODO: we may need to recalculate the frame for the path after adding the points
-    // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
-    // By now, we'll use a fixed width and height for this demo
-
-    // TODO: `stroke` support
-    let width = 24 // TODO: Calculate this properly
-    let height = 24 // TODO: Calculate this properly
-    // https://www.w3.org/TR/SVG2/paths.html#PathElement
-    // d | pathLength (optional) | id | style | class |
-    let pathDefaultAttributes = {
-      d: '',
-      // id: `path-${index}`,
-      id: 'path',
-    }
-    let attributes = { ...pathDefaultAttributes, ...svgData.attributes }
-    // style | script | mask | marker | clipPath | pattern | linearGradient | radialGradient | pattern
-    // let content = svgData.children
-
-    const svgPath: Path = {
+  sketchPathFromSVGPath: (path: string): FileFormat.ShapePath => {
+    let width = 24 // TODO: calculate this
+    let height = 24
+    let svgPath: Path = {
       type: 'path',
-      d: attributes.d,
+      d: path,
     }
     let svgPathPoints: Point[] = toPoints(svgPath)
     let sketchPathPoints: FileFormat.CurvePoint[] = []
-    let numberOfPaths = svgPathPoints.filter(point => point.moveTo == true)
-      .length
 
     let curvePointData = []
     svgPathPoints.forEach((point: Point, index) => {
@@ -127,7 +109,6 @@ const s2v = {
       sketchPathPoints.push(sketchPoint)
     })
     if (curvePointData.length > 0) {
-      // Let's see what we have here
       curvePointData.forEach(pointData => {
         let index = pointData[0]
         let curve: CurveCubic = pointData[1]
@@ -146,11 +127,37 @@ const s2v = {
     }
 
     let sketchPath = sketchBlocks.emptyShapePath('path', 0, 0, width, height)
-    sketchPath.style = s2v.parseStyle(svgData)
-    if (attributes.id) {
-      sketchPath.name = attributes.id
-    }
     sketchPath.points = sketchPathPoints
+    return sketchPath
+  },
+  path: (svgData: INode): FileFormat.ShapePath => {
+    // TODO: we may need to recalculate the frame for the path after adding the points
+    // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
+    // By now, we'll use a fixed width and height for this demo
+
+    // TODO: `stroke` support
+    let width = 24 // TODO: Calculate this properly
+    let height = 24 // TODO: Calculate this properly
+    // https://www.w3.org/TR/SVG2/paths.html#PathElement
+    // d | pathLength (optional) | id | style | class |
+
+    let numberOfPaths = svgData.attributes.d.split(/m|M/).length - 1
+    if (numberOfPaths > 1) {
+      // Split paths
+      let paths = svgData.attributes.d
+        .split(/m|M/)
+        .splice(1, numberOfPaths)
+        .map(item => `M${item}`)
+      paths.forEach(path => {
+        let sketchPath = s2v.sketchPathFromSVGPath(path)
+        console.log(sketchPath)
+      })
+    } else {
+      // make single path and return it
+    }
+    let sketchPath = s2v.sketchPathFromSVGPath(svgData.attributes.d)
+    sketchPath.name = svgData.attributes.id || 'path'
+    sketchPath.style = s2v.parseStyle(svgData)
     return sketchPath
   },
   ellipse: (svgData: INode): FileFormat.Oval => {
