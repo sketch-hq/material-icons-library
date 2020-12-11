@@ -28,7 +28,7 @@ files.forEach((file, index) => {
     .replace('assets/material-design-icons/src/', '')
     .replace('20px.svg', `${iconName} 20px`)
     .replace('24px.svg', `${iconName} 24px`) //
-  // console.log(`\nConverting "${svgName}.svg"`)
+  console.log(`⚙️  ${index} / ${files.length}: ${svgName}`)
   const json = parseSync(svgData)
 
   const width: number = parseFloat(json.attributes.width) || 100
@@ -121,9 +121,9 @@ files.forEach((file, index) => {
               // def.attributes
               break
             default:
-              console.warn(
-                `⚠️ We don't know what to do with ${def.name} by now`
-              )
+              // console.warn(
+              //   `⚠️ We don't know what to do with ${def.name} by now`
+              // )
               break
           }
         })
@@ -141,9 +141,9 @@ files.forEach((file, index) => {
       case 'font':
       case 'font-face':
       default:
-        console.warn(
-          `⚠️  We don't know what to do with '${child.name}' elements yet.`
-        )
+        // console.warn(
+        //   `⚠️  We don't know what to do with '${child.name}' elements yet.`
+        // )
         // Insert a dummy element
         // symbolMaster.layers.push(
         // TODO: investigate why we can't use emojis here to name layers...
@@ -221,7 +221,7 @@ function saveFile(layerCollection) {
       layerStyles: { _class: 'sharedStyleContainer', objects: [] },
       layerSymbols: { _class: 'symbolContainer', objects: [] },
       layerTextStyles: { _class: 'sharedTextStyleContainer', objects: [] },
-      pages: [symbolsPage],
+      pages: [blankPage, symbolsPage],
     },
     meta,
     user,
