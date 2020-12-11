@@ -97,10 +97,10 @@ const s2v = {
             curvePointData.push([index, point.curve])
             break
           case 'arc':
-            console.log('⚠️  Arc curves not implemented yet')
+            // console.log('⚠️  Arc curves not implemented yet')
             break
           case 'quadratic':
-            console.log('⚠️  Quadratic curves not implemented yet')
+            // console.log('⚠️  Quadratic curves not implemented yet')
             break
           default:
             break
@@ -263,9 +263,9 @@ const s2v = {
           sketchGroup.layers.push(s2v.polygon(item))
           break
         default:
-          console.warn(
-            `⚠️  We don't know what to do with '${item.name}' elements yet.`
-          )
+          // console.warn(
+          //   `⚠️  We don't know what to do with '${item.name}' elements yet.`
+          // )
           break
       }
     })
