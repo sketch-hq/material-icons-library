@@ -25,7 +25,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - name: Install node
-        uses: actions/setup-node@v1.4.1
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: 15
       - name: yarn install
         run: yarn install
       - name: Run sketch-synth
