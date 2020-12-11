@@ -4,6 +4,7 @@
   "description": "A proof of concept tool to generate Sketch files from other file formats",
   "main": "index.ts",
   "scripts": {
+    "postinstall": "cp src/patches/svg-points/index.d.ts node_modules/svg-points/index.d.ts",
     "clean": "rm -Rf *.sketch dist",
     "build": "yarn clean && tsc --outDir dist src/index.ts",
     "start": "yarn build && node dist/index.js",
