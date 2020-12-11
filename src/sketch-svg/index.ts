@@ -2,7 +2,7 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { INode } from 'svgson'
 import { v4 as uuid } from 'uuid'
 import { sketchBlocks } from '../sketch-blocks'
-import { Path, Point, Polygon, toPoints } from 'svg-points'
+import { CurveCubic, Path, Point, Polygon, toPoints } from 'svg-points'
 import { hasMagic } from 'glob'
 
 const s2v = {
@@ -96,13 +96,11 @@ const s2v = {
     let sketchPathPoints: FileFormat.CurvePoint[] = []
     let numberOfPaths = svgPathPoints.filter(point => point.moveTo == true)
       .length
-    // console.log(`There are ${numberOfPaths} real paths in this path node`)
 
+    let curvePointData = []
     svgPathPoints.forEach((point: Point, index) => {
       // If point `moveTo`, this is a new path
-      // console.log(point)
       // TODO: extract multiple Sketch paths from a single svg path
-      // TODO: move this to sketchBlocks
       let sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
         point.x / width,
         point.y / height
@@ -110,18 +108,7 @@ const s2v = {
       if (point.curve) {
         switch (point.curve.type) {
           case 'cubic':
-            sketchPoint.curveMode = FileFormat.CurveMode.Mirrored
-            // TODO: this curve translation clearly needs more work, because Sketch does not have
-            // anything like SVG's cubic curves, so we need to do some magic here. Check the code
-            // on Sketch's side to see what we're doing there.
-            sketchPoint.curveFrom = `{ x: ${point.curve.x2 / width}, y: ${
-              point.curve.y2 / height
-            }}`
-            sketchPoint.curveTo = `{ x: ${point.curve.x1 / width}, y: ${
-              point.curve.y1 / height
-            }}`
-            sketchPoint.hasCurveTo = false // This is actually the curveFrom of the *next* point in the Curve
-            sketchPoint.hasCurveFrom = false
+            curvePointData.push([index, point.curve])
             break
           case 'arc':
             console.log('⚠️  Arc curves not implemented yet')
@@ -133,15 +120,26 @@ const s2v = {
             break
         }
       }
-
-      // console.log(sketchPoint)
-      // if (point.moveTo == undefined) {
-      // We only want to render points without a `moveTo` attribute,
-      // since `svgpoints` already gives us points in the right coordinates
-      // and we don't really need to paint the `moveTo` points
       sketchPathPoints.push(sketchPoint)
-      // }
     })
+    if (curvePointData.length > 0) {
+      // Let's see what we have here
+      curvePointData.forEach(pointData => {
+        let index = pointData[0]
+        let curve: CurveCubic = pointData[1]
+        let thisPoint = sketchPathPoints[index]
+        let nextPoint = sketchPathPoints[index - 1]
+        thisPoint.curveMode = FileFormat.CurveMode.Mirrored
+        thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${curve.y2 / height}}`
+        thisPoint.hasCurveTo = true
+        if (nextPoint) {
+          nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
+            curve.y1 / height
+          }}`
+          nextPoint.hasCurveFrom = true
+        }
+      })
+    }
 
     let sketchPath = sketchBlocks.emptyShapePath('path', 0, 0, width, height)
     sketchPath.style = s2v.parseStyle(svgData.attributes.fill)
