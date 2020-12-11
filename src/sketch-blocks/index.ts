@@ -80,7 +80,7 @@ const sketchBlocks = {
     isFlowHome: false,
     isLocked: false,
     isVisible: true,
-    layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
     layers: [],
     resizesContent: false,
     resizingConstraint: 63,
@@ -108,7 +108,7 @@ const sketchBlocks = {
     isFlippedVertical: false,
     isLocked: false,
     isVisible: true,
-    layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+    layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
     layers: [],
     nameIsFixed: false,
     resizingConstraint: 63,
@@ -201,7 +201,7 @@ const sketchBlocks = {
       shouldBreakMaskChain: false,
       isVisible: true,
       isLocked: false,
-      layerListExpandedType: FileFormat.LayerListExpanded.Expanded,
+      layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
       booleanOperation: FileFormat.BooleanOperation.None, // let's not get there yet
       edited: true,
       exportOptions: sketchBlocks.emptyExportOptions(),
@@ -219,6 +219,44 @@ const sketchBlocks = {
       isFlippedHorizontal: false,
       isFlippedVertical: false,
       style: sketchBlocks.sampleStyle(),
+    }
+  },
+  emptyShapeGroup: (
+    name?: string,
+    x?: number,
+    y?: number,
+    width?: number,
+    height?: number
+  ): FileFormat.ShapeGroup => {
+    return {
+      _class: 'shapeGroup',
+      do_objectID: uuid(),
+      name: name || 'Combined Path',
+      nameIsFixed: true,
+      resizingConstraint: 63,
+      resizingType: FileFormat.ResizeType.Stretch,
+      rotation: 0,
+      shouldBreakMaskChain: false,
+      isVisible: true,
+      isLocked: false,
+      layerListExpandedType: FileFormat.LayerListExpanded.Collapsed,
+      booleanOperation: FileFormat.BooleanOperation.None, // let's not get there yet
+      exportOptions: sketchBlocks.emptyExportOptions(),
+      frame: {
+        _class: 'rect',
+        constrainProportions: true,
+        width: width || 100,
+        height: height || 100,
+        x: x || 0,
+        y: y || 0,
+      },
+      isFixedToViewport: false,
+      isFlippedHorizontal: false,
+      isFlippedVertical: false,
+      style: sketchBlocks.sampleStyle(),
+      hasClickThrough: false,
+      layers: [],
+      windingRule: FileFormat.WindingRule.EvenOdd,
     }
   },
   emptyOval: (

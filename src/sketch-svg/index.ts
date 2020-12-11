@@ -2,7 +2,7 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { INode } from 'svgson'
 import { v4 as uuid } from 'uuid'
 import { sketchBlocks } from '../sketch-blocks'
-import { CurveCubic, Path, Point, Polygon, toPoints } from 'svg-points'
+import { CurveCubic, Path, Point, Polygon, toPoints, toPath } from 'svg-points'
 import { hasMagic } from 'glob'
 
 const s2v = {
@@ -106,6 +106,9 @@ const s2v = {
             break
         }
       }
+      if (point.moveTo) {
+        // console.log(`We should close the current curve, and start a new one...`)
+      }
       sketchPathPoints.push(sketchPoint)
     })
     if (curvePointData.length > 0) {
@@ -130,7 +133,7 @@ const s2v = {
     sketchPath.points = sketchPathPoints
     return sketchPath
   },
-  path: (svgData: INode): FileFormat.ShapePath => {
+  path: (svgData: INode): FileFormat.ShapePath | FileFormat.ShapeGroup => {
     // TODO: we may need to recalculate the frame for the path after adding the points
     // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
     // By now, we'll use a fixed width and height for this demo
@@ -143,22 +146,67 @@ const s2v = {
 
     let numberOfPaths = svgData.attributes.d.split(/m|M/).length - 1
     if (numberOfPaths > 1) {
-      // Split paths
+      // First, make a container path for all
+      let container: FileFormat.ShapeGroup = sketchBlocks.emptyShapeGroup(
+        svgData.attributes.id,
+        parseFloat(svgData.attributes.x),
+        parseFloat(svgData.attributes.y),
+        parseFloat(svgData.attributes.width) || 24,
+        parseFloat(svgData.attributes.height) || 24
+      )
+
+      // console.log(svgData.attributes.d)
+
+      let numberOfAbsolutePaths = svgData.attributes.d.split('M').length - 1
       let paths = svgData.attributes.d
-        .split(/m|M/)
-        .splice(1, numberOfPaths)
+        .split('M') // we'll split `m` paths later on
+        .splice(1, numberOfAbsolutePaths)
         .map(item => `M${item}`)
       paths.forEach(path => {
+        // if (path.includes('m')) {
+        //   // There are subpaths in this path, so we need to split it _again_,
+        //   // but this time we need to use a different approach. We can't split them
+        //   // using a string-only approach, because then we'll miss important information about
+        //   // the position of the points (`m` moves the cursor relative to the current position, after all)
+        //   // So we're going to send this path over to toPoints(), and then back using toPath(),
+        //   // to hopefully get multiple paths with their points in absolute units
+        //   let svgPath: Path = {
+        //     type: 'path',
+        //     d: path,
+        //   }
+        //   let svgPathPoints: Point[] = toPoints(svgPath)
+        //   let splitPaths = []
+        //   let tmpPath: Point[] = []
+        //   svgPathPoints.forEach(point => {
+        //     if (point.moveTo) {
+        //       splitPaths.push(tmpPath)
+        //       tmpPath = []
+        //     }
+        //     tmpPath.push(point)
+        //   })
+        //   splitPaths.forEach(path => {
+        //     if (path.length > 0) {
+        //       // console.log(path)
+        //       let sketchPath = s2v.sketchPathFromSVGPath(toPath(path))
+        //       sketchPath.name = svgData.attributes.id || 'path'
+        //       container.layers.push(sketchPath)
+        //     }
+        //   })
+        // } else {
         let sketchPath = s2v.sketchPathFromSVGPath(path)
-        console.log(sketchPath)
+        sketchPath.name = svgData.attributes.id || 'path'
+        container.layers.push(sketchPath)
+        // }
       })
+      container.style = s2v.parseStyle(svgData)
+      return container
     } else {
       // make single path and return it
+      let sketchPath = s2v.sketchPathFromSVGPath(svgData.attributes.d)
+      sketchPath.name = svgData.attributes.id || 'path'
+      sketchPath.style = s2v.parseStyle(svgData)
+      return sketchPath
     }
-    let sketchPath = s2v.sketchPathFromSVGPath(svgData.attributes.d)
-    sketchPath.name = svgData.attributes.id || 'path'
-    sketchPath.style = s2v.parseStyle(svgData)
-    return sketchPath
   },
   ellipse: (svgData: INode): FileFormat.Oval => {
     return sketchBlocks.emptyCircle(
