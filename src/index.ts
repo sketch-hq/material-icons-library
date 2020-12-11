@@ -28,7 +28,7 @@ files.forEach((file, index) => {
     .replace('assets/material-design-icons/src/', '')
     .replace('20px.svg', `${iconName} 20px`)
     .replace('24px.svg', `${iconName} 24px`) //
-  console.log(`⚙️  ${index} / ${files.length}: ${svgName}`)
+  // console.log(`⚙️  ${index} / ${files.length}: ${svgName}`)
   const json = parseSync(svgData)
 
   const width: number = parseFloat(json.attributes.width) || 100
