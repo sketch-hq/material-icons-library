@@ -65,12 +65,7 @@ const s2v = {
       sketchRectangle.pointRadiusBehaviour =
         FileFormat.PointsRadiusBehaviour.Rounded
     }
-    if (svgData.attributes.style) {
-      sketchRectangle.style = s2v.parseStyle(svgData)
-    }
-    if (svgData.attributes.fill) {
-      sketchRectangle.style = s2v.parseStyle(svgData)
-    }
+    sketchRectangle.style = s2v.parseStyle(svgData)
     return sketchRectangle
   },
   path: (svgData: INode): FileFormat.ShapePath | FileFormat.ShapeGroup => {
@@ -262,6 +257,7 @@ const s2v = {
           break
       }
     })
+    sketchGroup.style = s2v.parseStyle(svgData)
     return sketchGroup
   },
   image: (svgData: INode): FileFormat.Bitmap => ({
