@@ -194,6 +194,12 @@ const s2v = {
         container.layers.push(currentPath)
       }
     })
+    if (container.layers.length == 1) {
+      // There's only one path in this shape so we can return it
+      // and skip the container. But first let's use the container style
+      currentPath.style = container.style
+      return currentPath
+    }
     return container
   },
   ellipse: (svgData: INode): FileFormat.Oval => {
