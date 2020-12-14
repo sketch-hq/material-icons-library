@@ -16,7 +16,6 @@ const sketchBlocks = {
       red: r,
       green: g,
       blue: b,
-      swatchID: swatchID || null,
     }
   },
   colorBlack: (): FileFormat.Color => {
