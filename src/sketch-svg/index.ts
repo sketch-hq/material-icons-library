@@ -7,7 +7,10 @@ import { hasMagic } from 'glob'
 
 const s2v = {
   parseStyle: (svgData: INode): FileFormat.Style => {
-    if (svgData.attributes.fill == 'none' || svgData.attributes.style == 'fill:none') {
+    if (
+      svgData.attributes.fill == 'none' ||
+      svgData.attributes.style == 'fill:none'
+    ) {
       return sketchBlocks.emptyStyle()
     } else {
       let style = sketchBlocks.sampleStyle()
@@ -280,12 +283,16 @@ const s2v = {
       }
 
       // If the layer is using a default style, use the parent style from the group
-      // if it is defined
       if (sketchLayer) {
         if (sketchLayer.style) {
           let style = sketchLayer.style
           // This is an oversimplification of this check, but it will work for our sample code
-          if (style.borders.length == 1 && style.fills.length == 1 && (style.fills[0].color.alpha == 1 || style.fills[0].color.alpha == 0.87)) {
+          if (
+            style.borders.length == 1 &&
+            style.fills.length == 1 &&
+            (style.fills[0].color.alpha == 1 ||
+              style.fills[0].color.alpha == 0.87)
+          ) {
             sketchLayer.style = groupStyle
           }
         }
