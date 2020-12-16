@@ -7,9 +7,7 @@ import { hasMagic } from 'glob'
 
 const s2v = {
   parseStyle: (svgData: INode): FileFormat.Style => {
-    // console.log(`Parsing svg style: ${svgStyle}`)
-    // let style = sketchBlocks.emptyStyle()
-    if (svgData.attributes.fill == 'none') {
+    if (svgData.attributes.fill == 'none' || svgData.attributes.style == 'fill:none') {
       return sketchBlocks.emptyStyle()
     } else {
       let style = sketchBlocks.sampleStyle()
@@ -229,38 +227,69 @@ const s2v = {
       parseFloat(svgData.attributes.width) || 24,
       parseFloat(svgData.attributes.height) || 24
     )
+    // We're going to store a reference to the group's style, in case we
+    // need to apply it to any of its children if they don't have a style set
+    let groupStyle = s2v.parseStyle(svgData)
+
     // Traverse Group contents (here's where you'll wish you had made all the parsing code
     // reusable in a library, )
     svgData.children.forEach(item => {
+      let sketchLayer:
+        | FileFormat.Group
+        | FileFormat.ShapePath
+        | FileFormat.ShapeGroup
+        | FileFormat.Oval
+        | FileFormat.Rectangle
+        | FileFormat.Bitmap
+        | FileFormat.Text
+        | FileFormat.Polygon
+        | FileFormat.Star
+        | FileFormat.Triangle
+        | FileFormat.SymbolInstance
+        | FileFormat.Slice
+        | FileFormat.Hotspot
       switch (item.name) {
         // TODO: extract this into a method, since we use the exact same construct
         // on `sketch-synth/index.ts`
         case 'path':
-          sketchGroup.layers.push(s2v.path(item))
+          sketchLayer = s2v.path(item)
           break
         case 'rect':
-          sketchGroup.layers.push(s2v.rect(item))
+          sketchLayer = s2v.rect(item)
           break
         case 'ellipse':
-          sketchGroup.layers.push(s2v.ellipse(item))
+          sketchLayer = s2v.ellipse(item)
           break
         case 'circle':
-          sketchGroup.layers.push(s2v.circle(item))
+          sketchLayer = s2v.circle(item)
           break
         case 'text':
-          sketchGroup.layers.push(s2v.text(item))
+          sketchLayer = s2v.text(item)
           break
         case 'g':
-          sketchGroup.layers.push(s2v.group(item))
+          sketchLayer = s2v.group(item)
           break
         case 'polygon':
-          sketchGroup.layers.push(s2v.polygon(item))
+          sketchLayer = s2v.polygon(item)
           break
         default:
           // console.warn(
           //   `⚠️  We don't know what to do with '${item.name}' elements yet.`
           // )
           break
+      }
+
+      // If the layer is using a default style, use the parent style from the group
+      // if it is defined
+      if (sketchLayer) {
+        if (sketchLayer.style) {
+          let style = sketchLayer.style
+          // This is an oversimplification of this check, but it will work for our sample code
+          if (style.borders.length == 1 && style.fills.length == 1 && (style.fills[0].color.alpha == 1 || style.fills[0].color.alpha == 0.87)) {
+            sketchLayer.style = groupStyle
+          }
+        }
+        sketchGroup.layers.push(sketchLayer)
       }
     })
     sketchGroup.style = s2v.parseStyle(svgData)
