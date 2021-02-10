@@ -28,18 +28,11 @@ files.forEach((file, index) => {
     .replace('assets/material-design-icons/src/', '')
     .replace('20px.svg', `${iconName} 20px`)
     .replace('24px.svg', `${iconName} 24px`) //
-  // console.log(`⚙️  ${index} / ${files.length}: ${svgName}`)
   const json = parseSync(svgData)
 
   const width: number = parseFloat(json.attributes.width) || 100
   const height: number = parseFloat(json.attributes.height) || 100
-  // console.log(`  Dimensions: ${width}x${height}`)
 
-  /*
-  TODO: There's something wrong with the way I'm creating these, because
-  although they're drawn in the document, selecting them does not update
-  the Inspector data like normal Symbol Masters do.
-  */
   let columns = 30
   let iconSpacing = 50
   var symbolMaster: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
@@ -50,7 +43,6 @@ files.forEach((file, index) => {
     Math.floor(index / columns) * iconSpacing
   )
   json.children.forEach((child, index) => {
-    // console.log(child)
     switch (child.name) {
       case 'path':
         symbolMaster.layers.push(s2v.path(child))
