@@ -1,28 +1,18 @@
-# This is a basic workflow to help you get started with Actions
+name: Generate Sketch Library
 
-name: Sketch Synth Action
-
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
@@ -30,11 +20,11 @@ jobs:
         uses: actions/setup-node@v2-beta
         with:
           node-version: 15
-      - name: yarn install
+      - name: Install dependencies
         run: yarn install
-      - name: Run sketch-synth
+      - name: Generate Sketch Library
         run: yarn start
       - uses: actions/upload-artifact@v2
         with:
-          name: Google Material Icons
+          name: Material Design Icons - Sketch Library
           path: material-design-icons.sketch
