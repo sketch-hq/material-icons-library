@@ -1,10 +1,6 @@
-# ⚗️ Sketch Synth
+# Material Icons Library
 
-A proof of concept tool to generate Sketch files from other file formats
-
-## Supported Input Formats
-
-- SVG (technically just a very small subset of them, since this demo is focused on Google Material Design Icons by now)
+A proof of concept tool to generate a Sketch Library from Google's Material Design Icons. For more information, see the related article at `URL`.
 
 ## Requirements
 
@@ -24,4 +20,4 @@ If all went well, you'll now have a `material-design-icons.sketch` file on your 
 
 ## Bonus
 
-If you don't feel like installing anything, [there is an Action in the repo](https://github.com/sketch-hq/sketch-synth/blob/main/.github/workflows/main.yml) that runs the project and generates the .sketch file as an Action Artifact you can download here: https://github.com/sketch-hq/sketch-synth/actions
+If you don't feel like installing anything, [there is an Action in the repo](https://github.com/sketch-hq/material-icons-library/blob/main/.github/workflows/main.yml) that runs the project and generates the .sketch file as an Action Artifact you can download here: https://github.com/sketch-hq/material-icons-library/actions
