@@ -1,7 +1,7 @@
 {
-  "name": "sketch-synth",
+  "name": "@sketch-hq/material-icons-library",
   "version": "1.0.0",
-  "description": "A proof of concept tool to generate Sketch files from other file formats",
+  "description": "A proof of concept tool to generate a Sketch Library from Google's Material Design Icons.",
   "main": "index.ts",
   "scripts": {
     "postinstall": "cp src/patches/svg-points/index.d.ts node_modules/svg-points/index.d.ts",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sketch-hq/sketch-synth.git"
+    "url": "git+https://github.com/sketch-hq/material-icons-library.git"
   },
   "keywords": [
     "sketch"
@@ -21,9 +21,9 @@
   "author": "Ale M",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sketch-hq/sketch-synth/issues"
+    "url": "https://github.com/sketch-hq/material-icons-library/issues"
   },
-  "homepage": "https://github.com/sketch-hq/sketch-synth#readme",
+  "homepage": "https://github.com/sketch-hq/material-icons-library#readme",
   "dependencies": {
     "adm-zip": "^0.5.1",
     "glob": "^7.1.6",

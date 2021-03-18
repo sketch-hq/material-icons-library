@@ -13,7 +13,7 @@ import { sketchBlocks } from './sketch-blocks'
 
 let outputFile = 'material-design-icons.sketch'
 
-console.log(`\n\n⚗️   Sketch Synth v${process.env.npm_package_version}`)
+console.log(`\n\nMaterial Icons Library v${process.env.npm_package_version}`)
 
 var layerCollection = []
 const files = glob.sync('assets/material-design-icons/src/**/**/**/*.svg')

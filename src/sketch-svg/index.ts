@@ -253,7 +253,7 @@ const s2v = {
         | FileFormat.Hotspot
       switch (item.name) {
         // TODO: extract this into a method, since we use the exact same construct
-        // on `sketch-synth/index.ts`
+        // on `material-icons-library/index.ts`
         case 'path':
           sketchLayer = s2v.path(item)
           break
