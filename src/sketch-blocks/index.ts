@@ -72,7 +72,6 @@ const sketchBlocks = {
       guides: [],
     },
     includeBackgroundColorInExport: false,
-    includeInCloudUpload: true,
     isFixedToViewport: false,
     isFlippedHorizontal: false,
     isFlippedVertical: false,
@@ -176,7 +175,6 @@ const sketchBlocks = {
       hasClickThrough: true,
       groupLayout: { _class: 'MSImmutableFreeformGroupLayout' },
       layers: [],
-      includeInCloudUpload: true,
       horizontalRulerData: { _class: 'rulerData', base: 0, guides: [] },
       verticalRulerData: { _class: 'rulerData', base: 0, guides: [] },
     }
