@@ -8,7 +8,7 @@ import { parseSync } from 'svgson'
 import { s2v } from './sketch-svg'
 
 import FileFormat from '@sketch-hq/sketch-file-format-ts'
-import { toFile } from './to-file'
+import { SketchFile, toFile } from '@sketch-hq/sketch-file'
 import { sketchBlocks } from './sketch-blocks'
 
 let outputFile = 'material-design-icons.sketch'
@@ -163,7 +163,6 @@ function saveFile(layerCollection) {
       //   pagesAndArtboardsID: { name: pageName, artboards: {} },
     },
     version: 131,
-    fonts: [],
     compatibilityVersion: 99,
     app: FileFormat.BundleId.Internal,
     autosaved: 0,
@@ -188,6 +187,8 @@ function saveFile(layerCollection) {
 
   const user: FileFormat.User = {
     document: { pageListHeight: 85, pageListCollapsed: 0 },
+  }
+  const workspace: FileFormat.Workspace = {
   }
 
   const contents: FileFormat.Contents = {
@@ -217,9 +218,13 @@ function saveFile(layerCollection) {
     },
     meta,
     user,
+    workspace
   }
-
-  toFile(contents, `./${outputFile}`)
+  let fileToSave:SketchFile = {
+    contents: contents,
+    filepath: outputFile
+  }
+  toFile(fileToSave)
     .then(() => {
       console.log(`🎉  File saved successfully!`)
     })
