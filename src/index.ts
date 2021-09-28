@@ -64,9 +64,10 @@ files.forEach((file, index) => {
         break
 
       case 'defs':
+        // These are Styles and other reusable elements. We're not using them in this example,
+        // but we can use them in other projects. Comments left in for reference.
         break
-        // These are Styles and other reusable elements.
-        // It can contain any element inside it, but by now we'll only worry about Style-like content:
+        // A `defs` node can contain any element, but by now we'll only worry about Style-like content:
         // `linearGradient`, `radialGradient` and `pattern` (although we may also ignore this last one)
         // For more info, check https://www.w3.org/TR/SVG/struct.html#DefsElement
         child.children.forEach(def => {
@@ -133,15 +134,15 @@ files.forEach((file, index) => {
       case 'font':
       case 'font-face':
       default:
-        // console.warn(
-        //   `⚠️  We don't know what to do with '${child.name}' elements yet.`
-        // )
+        console.warn(
+          `⚠️  We don't know what to do with '${child.name}' elements yet.`
+        )
         // Insert a dummy element
-        // symbolMaster.layers.push(
-        // TODO: investigate why we can't use emojis here to name layers...
-        // sketchBlocks.emptyShapePath('⚠️ Untranslated element')
-        // sketchBlocks.emptyShapePath('Untranslated element')
-        // )
+        symbolMaster.layers.push(
+          // TODO: investigate why we can't use emojis here to name layers...
+          sketchBlocks.emptyShapePath('⚠️ Untranslated element')
+          // sketchBlocks.emptyShapePath('Untranslated element')
+        )
         break
     }
   })
@@ -156,28 +157,26 @@ function saveFile(layerCollection) {
   )
   const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
 
+  // TODO: update this to use the latest version of the file format metadata
   const meta: FileFormat.Meta = {
     commit: fileCommit,
-    pagesAndArtboards: {
-      // Apparently this is not required...
-      //   pagesAndArtboardsID: { name: pageName, artboards: {} },
-    },
+    pagesAndArtboards: {},
     version: 131,
     compatibilityVersion: 99,
-    app: FileFormat.BundleId.Internal,
+    app: FileFormat.BundleId.PublicRelease,
     autosaved: 0,
     variant: 'NONAPPSTORE',
     created: {
       commit: fileCommit,
-      appVersion: '70.1',
+      appVersion: '77',
       build: 92452,
-      app: FileFormat.BundleId.Internal,
+      app: FileFormat.BundleId.PublicRelease,
       compatibilityVersion: 99,
       version: 131,
       variant: 'NONAPPSTORE',
     },
     saveHistory: [],
-    appVersion: '70.1',
+    appVersion: '77',
     build: 92452,
   }
 
@@ -188,8 +187,7 @@ function saveFile(layerCollection) {
   const user: FileFormat.User = {
     document: { pageListHeight: 85, pageListCollapsed: 0 },
   }
-  const workspace: FileFormat.Workspace = {
-  }
+  const workspace: FileFormat.Workspace = {}
 
   const contents: FileFormat.Contents = {
     document: {
@@ -218,11 +216,11 @@ function saveFile(layerCollection) {
     },
     meta,
     user,
-    workspace
+    workspace,
   }
-  let fileToSave:SketchFile = {
+  let fileToSave: SketchFile = {
     contents: contents,
-    filepath: outputFile
+    filepath: outputFile,
   }
   toFile(fileToSave)
     .then(() => {
