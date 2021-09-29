@@ -432,7 +432,7 @@ const s2v = {
         console.warn(
           `⚠️  We don't know what to do with '${svgData.name}' elements yet.`
         )
-        return sketchBlocks.emptyShapePath('Untranslated element')
+        return sketchBlocks.emptyShapePath('Untranslated element', 0, 0, 2, 2)
     }
   },
   updateCurveControlPoints(
