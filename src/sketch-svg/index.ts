@@ -2,8 +2,7 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { INode } from 'svgson'
 import { v4 as uuid } from 'uuid'
 import { sketchBlocks } from '../sketch-blocks'
-import { CurveCubic, Path, Point, Polygon, toPoints, toPath } from 'svg-points'
-import { hasMagic } from 'glob'
+import { CurveCubic, Path, Point, Polygon, toPoints } from 'svg-points'
 
 const s2v = {
   parseStyle: (svgData: INode): FileFormat.Style => {
@@ -19,31 +18,6 @@ const s2v = {
       }
       return style
     }
-
-    /*{
-      _class: 'style',
-      borderOptions: {
-        _class: 'borderOptions',
-        isEnabled: true,
-        dashPattern: [],
-        lineCapStyle: FileFormat.LineCapStyle.Butt,
-        lineJoinStyle: FileFormat.LineJoinStyle.Bevel,
-      },
-      colorControls: {
-        _class: 'colorControls',
-        isEnabled: false,
-        brightness: 0,
-        contrast: 0,
-        hue: 0,
-        saturation: 0,
-      },
-      do_objectID: uuid(),
-      startMarkerType: FileFormat.MarkerType.FilledArrow,
-      endMarkerType: FileFormat.MarkerType.FilledArrow,
-      miterLimit: 0,
-      windingRule: FileFormat.WindingRule.EvenOdd,
-      innerShadows: null,
-    }*/
   },
   rect: (svgData: INode): FileFormat.Rectangle => {
     let sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
@@ -54,7 +28,7 @@ const s2v = {
       parseFloat(svgData.attributes.height) || 100
     )
     if (svgData.attributes.rx || svgData.attributes.ry) {
-      // TODO: SVG supports an `ry` attribute for vertical corner radius (see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect)
+      // SVG supports an `ry` attribute for vertical corner radius (see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect)
       // As far as I know, we don't have anything similar in Sketch, and I doubt it makes sense to try to implement it,
       // but I think it's worth mentioning here. This implementation just takes the first it finds and calls it a day.
       let cornerRadius =
@@ -71,19 +45,16 @@ const s2v = {
   },
   path: (svgData: INode): FileFormat.ShapePath | FileFormat.ShapeGroup => {
     // https://www.w3.org/TR/SVG2/paths.html#PathElement
-
-    // TODO: we may need to recalculate the frame for the path after adding the points
+    // We may need to recalculate the frame for the path after adding the points
     // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
     // By now, we'll use a fixed width and height for this demo
-
-    // TODO: `stroke` support
-    let width = 24 // TODO: Calculate this properly
-    let height = 24 // TODO: Calculate this properly
+    let width = 24
+    let height = 24
 
     /**
      * We don't really need to split paths or know how many of them are there,
-     * or make special code paths for 1 vs multiple paths, do we?
-     * We just need to start painting, and keep pushing paths to the container...
+     * or make special code paths for 1 vs multiple paths.
+     * We just need to start painting, and keep pushing paths to the container…
      */
     let container = sketchBlocks.emptyShapeGroup(
       svgData.attributes.id,
@@ -109,27 +80,12 @@ const s2v = {
         // Store the current path (if any) in the container and create a new one.
         // To store the current path, we first need to assign the right curve points
         if (!firstPath) {
-          // Update curve control points
-          if (currentControlPoints.length > 0) {
-            currentControlPoints.forEach(pointData => {
-              let index = pointData[0]
-              let curve: CurveCubic = pointData[1]
-              let thisPoint = currentPoints[index]
-              let nextPoint = currentPoints[index - 1]
-              thisPoint.curveMode = FileFormat.CurveMode.Mirrored
-              thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${
-                curve.y2 / height
-              }}`
-              thisPoint.hasCurveTo = true
-              if (nextPoint) {
-                nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
-                  curve.y1 / height
-                }}`
-                nextPoint.hasCurveFrom = true
-              }
-            })
-          }
-          currentPath.points = currentPoints
+          currentPath.points = s2v.updateCurveControlPoints(
+            currentControlPoints,
+            currentPoints,
+            width,
+            height
+          )
           // Store path in the container
           container.layers.push(currentPath)
         } else {
@@ -157,10 +113,10 @@ const s2v = {
             currentControlPoints.push([currentPointCounter, point.curve])
             break
           case 'arc':
-            // console.log('⚠️  Arc curves not implemented yet')
+            console.log('⚠️  Arc curves not implemented yet')
             break
           case 'quadratic':
-            // console.log('⚠️  Quadratic curves not implemented yet')
+            console.log('⚠️  Quadratic curves not implemented yet')
             break
           default:
             break
@@ -170,27 +126,13 @@ const s2v = {
       currentPointCounter++
       if (index == svgPathPoints.length - 1) {
         // This is the last point on the path group, so we need to draw it
-        // and then commit the path. This code is duplicated. Sue me.
-        if (currentControlPoints.length > 0) {
-          currentControlPoints.forEach(pointData => {
-            let index = pointData[0]
-            let curve: CurveCubic = pointData[1]
-            let thisPoint = currentPoints[index]
-            let nextPoint = currentPoints[index - 1]
-            thisPoint.curveMode = FileFormat.CurveMode.Mirrored
-            thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${
-              curve.y2 / height
-            }}`
-            thisPoint.hasCurveTo = true
-            if (nextPoint) {
-              nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
-                curve.y1 / height
-              }}`
-              nextPoint.hasCurveFrom = true
-            }
-          })
-        }
-        currentPath.points = currentPoints
+        // and then commit the path.
+        currentPath.points = s2v.updateCurveControlPoints(
+          currentControlPoints,
+          currentPoints,
+          width,
+          height
+        )
         // Store path in the container
         container.layers.push(currentPath)
       }
@@ -236,7 +178,7 @@ const s2v = {
 
     // Traverse Group contents (here's where you'll wish you had made all the parsing code
     // reusable in a library, )
-    svgData.children.forEach(item => {
+    svgData.children.forEach((item, index) => {
       let sketchLayer:
         | FileFormat.Group
         | FileFormat.ShapePath
@@ -250,37 +192,7 @@ const s2v = {
         | FileFormat.Triangle
         | FileFormat.SymbolInstance
         | FileFormat.Slice
-        | FileFormat.Hotspot
-      switch (item.name) {
-        // TODO: extract this into a method, since we use the exact same construct
-        // on `material-icons-library/index.ts`
-        case 'path':
-          sketchLayer = s2v.path(item)
-          break
-        case 'rect':
-          sketchLayer = s2v.rect(item)
-          break
-        case 'ellipse':
-          sketchLayer = s2v.ellipse(item)
-          break
-        case 'circle':
-          sketchLayer = s2v.circle(item)
-          break
-        case 'text':
-          sketchLayer = s2v.text(item)
-          break
-        case 'g':
-          sketchLayer = s2v.group(item)
-          break
-        case 'polygon':
-          sketchLayer = s2v.polygon(item)
-          break
-        default:
-          // console.warn(
-          //   `⚠️  We don't know what to do with '${item.name}' elements yet.`
-          // )
-          break
-      }
+        | FileFormat.Hotspot = s2v.parse(item, index)
 
       // If the layer is using a default style, use the parent style from the group
       if (sketchLayer) {
@@ -306,7 +218,7 @@ const s2v = {
     // TODO: download and embed image in Sketch document, by now we'll use an embedded image
     // TODO: apparently SVG creates a frame for the bitmap, in which it then renders the image without stretching it.
     // A possible option for us would be to create an empty Rectangle, with an image fill that mimics the behavior of how a browser renders the SVG element.
-    // However, I just tried our own native importer and it looks like we're doing the wrong thing, so not sure how much further we want to go with this...
+    // However, I just tried our own native importer and it looks like we're doing the wrong thing, so not sure how much further we want to go with this…
     _class: 'bitmap',
     name: svgData.attributes.id || 'Bitmap',
     do_objectID: uuid(),
@@ -356,6 +268,8 @@ const s2v = {
     shouldBreakMaskChain: false,
   }),
   text: (svgData: INode): FileFormat.Text => ({
+    // There's not a lot of text on the Material Design Icons, so this code is mostly untested.
+    // It's left here in case it's useful to someone.
     _class: 'text',
     name: svgData.attributes.id || 'Text',
     attributedString: {
@@ -433,6 +347,118 @@ const s2v = {
     sketchPath.style = s2v.parseStyle(svgData)
     sketchPath.points = sketchPolygonPoints
     return sketchPath
+  },
+  parse(svgData: INode, index: number) {
+    switch (svgData.name) {
+      case 'path':
+        return this.path(svgData)
+      case 'rect':
+        return this.rect(svgData)
+      case 'ellipse':
+        return this.ellipse(svgData)
+      case 'circle':
+        return this.circle(svgData)
+      case 'text':
+        return this.text(svgData)
+      case 'g':
+        return this.group(svgData)
+      case 'polygon':
+        return this.polygon(svgData)
+      case 'defs':
+        // These are Styles and other reusable elements. We're not using them in this example,
+        // but we can use them in other projects. Comments left in for reference.
+        break
+        // A `defs` node can contain any element, but by now we'll only worry about Style-like content:
+        // `linearGradient`, `radialGradient` and `pattern` (although we may also ignore this last one)
+        // For more info, check https://www.w3.org/TR/SVG/struct.html#DefsElement
+        svgData.children.forEach(def => {
+          // console.log(def)
+          switch (def.name) {
+            case 'linearGradient':
+              // https://www.w3.org/TR/SVG/pservers.html#LinearGradientElement
+              // ## Parse Attributes
+              let linearGradientDefaults = {
+                id: `linear-gradient-${index}`,
+                // TODO: These values are actually of the <length> type. So they can come in all sorts of units. Find a proper parser for that (check https://github.com/reworkcss/css)
+                x1: 0,
+                x2: 0,
+                y1: 100,
+                y2: 0,
+                gradientUnits: 'objectBoundingBox',
+                gradientTransform: '',
+                spreadMethod: 'pad',
+                href: '',
+              }
+              let attributes = {
+                ...linearGradientDefaults,
+                ...svgData.attributes,
+              }
+              // ## Parse content
+              // Children of a linearGradient element can be any of:
+              // desc, title, metadata, animate, animateTransform, script, set, stop, style
+              // We'll only worry about `stop` elements by now
+              let stops = def.children.filter(element => element.name == 'stop')
+              stops.forEach(stop => {
+                // https://www.w3.org/TR/SVG/pservers.html#StopElement
+                // console.log(stop)
+                // console.log(`Linear Gradient Stop:`)
+                // console.log(`\tOffset: ${stop.attributes.offset}`)
+                // Style can be an attribute or a child element of a stop 🙃
+                // https://www.w3.org/TR/SVG/styling.html#StyleAttribute
+                // https://www.w3.org/TR/SVG/styling.html#StyleElement
+                // console.log(`\tStyle: ${stop.attributes.style}`)
+              })
+              break
+            case 'radialGradient':
+              // console.log(`radialGradient`)
+              //
+              // def.attributes
+              break
+            default:
+              // console.warn(
+              //   `⚠️ We don't know what to do with ${def.name} by now`
+              // )
+              break
+          }
+        })
+      case 'image':
+        return this.image(svgData)
+      case 'line':
+      case 'polyline':
+      case 'filter':
+      case 'font':
+      case 'font-face':
+      default:
+        console.warn(
+          `⚠️  We don't know what to do with '${svgData.name}' elements yet.`
+        )
+        return sketchBlocks.emptyShapePath('Untranslated element')
+    }
+  },
+  updateCurveControlPoints(
+    currentControlPoints: any,
+    currentPoints: FileFormat.CurvePoint[],
+    width: number,
+    height: number
+  ): FileFormat.CurvePoint[] {
+    if (currentControlPoints.length > 0) {
+      currentControlPoints.forEach(pointData => {
+        let index = pointData[0]
+        let curve: CurveCubic = pointData[1]
+        let thisPoint = currentPoints[index]
+        let nextPoint = currentPoints[index - 1]
+        thisPoint.curveMode = FileFormat.CurveMode.Mirrored
+        thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${curve.y2 / height}}`
+        thisPoint.hasCurveTo = true
+        if (nextPoint) {
+          nextPoint.curveFrom = `{ x: ${curve.x1 / width}, y: ${
+            curve.y1 / height
+          }}`
+          nextPoint.hasCurveFrom = true
+        }
+      })
+    }
+    return currentPoints
   },
 }
 export { s2v }

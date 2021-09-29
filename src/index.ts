@@ -20,8 +20,6 @@ const files = glob.sync('assets/material-design-icons/src/**/**/**/*.svg')
 //.slice(0, 100) // Limit number of icons, for testing
 
 files.forEach((file, index) => {
-  // console.log(file)
-
   const svgData = fs.readFileSync(file, { encoding: 'utf8', flag: 'r' })
   const iconName = path.dirname(file).split('/').splice(-2)[0]
   const svgName = file
@@ -43,108 +41,7 @@ files.forEach((file, index) => {
     Math.floor(index / columns) * iconSpacing
   )
   json.children.forEach((child, index) => {
-    switch (child.name) {
-      case 'path':
-        symbolMaster.layers.push(s2v.path(child))
-        break
-      case 'rect':
-        symbolMaster.layers.push(s2v.rect(child))
-        break
-      case 'circle':
-        symbolMaster.layers.push(s2v.circle(child))
-        break
-      case 'ellipse':
-        symbolMaster.layers.push(s2v.ellipse(child))
-        break
-      case 'g':
-        symbolMaster.layers.push(s2v.group(child))
-        break
-      case 'polygon':
-        symbolMaster.layers.push(s2v.polygon(child))
-        break
-
-      case 'defs':
-        // These are Styles and other reusable elements. We're not using them in this example,
-        // but we can use them in other projects. Comments left in for reference.
-        break
-        // A `defs` node can contain any element, but by now we'll only worry about Style-like content:
-        // `linearGradient`, `radialGradient` and `pattern` (although we may also ignore this last one)
-        // For more info, check https://www.w3.org/TR/SVG/struct.html#DefsElement
-        child.children.forEach(def => {
-          // console.log(def)
-          switch (def.name) {
-            case 'linearGradient':
-              // https://www.w3.org/TR/SVG/pservers.html#LinearGradientElement
-              // ## Parse Attributes
-              let linearGradientDefaults = {
-                id: `linear-gradient-${index}`,
-                // TODO: These values are actually of the <length> type. So they can come in all sorts of units. Find a proper parser for that (check https://github.com/reworkcss/css)
-                x1: 0,
-                x2: 0,
-                y1: 100,
-                y2: 0,
-                gradientUnits: 'objectBoundingBox',
-                gradientTransform: '',
-                spreadMethod: 'pad',
-                href: '',
-              }
-              let attributes = {
-                ...linearGradientDefaults,
-                ...child.attributes,
-              }
-              // ## Parse content
-              // Children of a linearGradient element can be any of:
-              // desc, title, metadata, animate, animateTransform, script, set, stop, style
-              // We'll only worry about `stop` elements by now
-              let stops = def.children.filter(element => element.name == 'stop')
-              stops.forEach(stop => {
-                // https://www.w3.org/TR/SVG/pservers.html#StopElement
-                // console.log(stop)
-                // console.log(`Linear Gradient Stop:`)
-                // console.log(`\tOffset: ${stop.attributes.offset}`)
-                // Style can be an attribute or a child element of a stop 🙃
-                // https://www.w3.org/TR/SVG/styling.html#StyleAttribute
-                // https://www.w3.org/TR/SVG/styling.html#StyleElement
-                // console.log(`\tStyle: ${stop.attributes.style}`)
-              })
-              break
-            case 'radialGradient':
-              // console.log(`radialGradient`)
-              //
-              // def.attributes
-              break
-            default:
-              // console.warn(
-              //   `⚠️ We don't know what to do with ${def.name} by now`
-              // )
-              break
-          }
-        })
-        break
-
-      case 'image':
-        symbolMaster.layers.push(s2v.image(child))
-        break
-      case 'text':
-        symbolMaster.layers.push(s2v.text(child))
-        break
-      case 'line':
-      case 'polyline':
-      case 'filter':
-      case 'font':
-      case 'font-face':
-      default:
-        console.warn(
-          `⚠️  We don't know what to do with '${child.name}' elements yet.`
-        )
-        // Insert a dummy element
-        symbolMaster.layers.push(
-          // TODO: investigate why we can't use emojis here to name layers...
-          sketchBlocks.emptyShapePath('⚠️ Untranslated element')
-          // sketchBlocks.emptyShapePath('Untranslated element')
-        )
-        break
-    }
+    symbolMaster.layers.push(s2v.parse(child, index))
   })
   layerCollection.push(symbolMaster)
 })
@@ -192,7 +89,7 @@ function saveFile(layerCollection) {
   const contents: FileFormat.Contents = {
     document: {
       _class: 'document',
-      do_objectID: uuid(), // TODO: get the uuid from a command line option?
+      do_objectID: uuid(),
       colorSpace: 0,
       currentPageIndex: 0,
       assets: {
