@@ -52,29 +52,27 @@ function saveFile(layerCollection) {
   console.log(
     `\n📦  Saving file with ${layerCollection.length} icons at '${outputFile}'`
   )
-  const fileCommit = '6896e2bfdb0a2a03f745e4054a8c5fc58565f9f1'
-
-  // TODO: update this to use the latest version of the file format metadata
+  const fileCommit = 'da3a810344f01b8f82ff1686c8c6e334062f75ce'
   const meta: FileFormat.Meta = {
-    commit: fileCommit,
-    pagesAndArtboards: {},
-    version: 131,
-    compatibilityVersion: 99,
     app: FileFormat.BundleId.PublicRelease,
-    autosaved: 0,
-    variant: 'NONAPPSTORE',
-    created: {
-      commit: fileCommit,
-      appVersion: '77',
-      build: 92452,
-      app: FileFormat.BundleId.PublicRelease,
-      compatibilityVersion: 99,
-      version: 131,
-      variant: 'NONAPPSTORE',
-    },
-    saveHistory: [],
     appVersion: '77',
-    build: 92452,
+    autosaved: 0,
+    build: 131065,
+    commit: fileCommit,
+    compatibilityVersion: 99,
+    pagesAndArtboards: {},
+    saveHistory: [],
+    variant: 'NONAPPSTORE',
+    version: 136,
+    created: {
+      app: FileFormat.BundleId.PublicRelease,
+      appVersion: '77',
+      build: 131065,
+      commit: fileCommit,
+      compatibilityVersion: 99,
+      variant: 'NONAPPSTORE',
+      version: 136,
+    },
   }
 
   const blankPage: FileFormat.Page = sketchBlocks.emptyPage('Blank')
@@ -85,7 +83,6 @@ function saveFile(layerCollection) {
     document: { pageListHeight: 85, pageListCollapsed: 0 },
   }
   const workspace: FileFormat.Workspace = {}
-
   const contents: FileFormat.Contents = {
     document: {
       _class: 'document',
