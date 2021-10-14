@@ -4,8 +4,10 @@
   "description": "A proof of concept tool to generate a Sketch Library from Google's Material Design Icons.",
   "main": "index.ts",
   "scripts": {
-    "postinstall": "cp src/patches/svg-points/index.d.ts node_modules/svg-points/index.d.ts",
+    "postinstall": "yarn run patch && yarn run clone-icons",
     "clean": "rm -Rf *.sketch dist",
+    "patch": "cp src/patches/svg-points/index.d.ts node_modules/svg-points/index.d.ts",
+    "clone-icons": "git clone --depth=1 https://github.com/google/material-design-icons.git assets/material-design-icons",
     "build": "yarn clean && tsc --outDir dist src/index.ts",
     "start": "yarn build && node dist/index.js",
     "open": "yarn start && open -a Sketch material-design-icons.sketch",

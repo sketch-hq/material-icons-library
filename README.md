@@ -12,11 +12,10 @@ Once that's ready:
 
 - Clone the repository.
 - `cd` to the project folder.
-- run `git submodule update --init --depth 1` to fetch the latest icons from Google Material Design (this will take a while).
-- run `yarn install` to install all the dependencies.
+- run `yarn install` to install all the dependencies. This will take a while.
 - run `yarn start` to generate the Sketch Library. Depending on your computer setup, this will take anywhere from a few seconds to a few minutes. For reference, building the Library takes about 9 seconds on a 2020 M1 MacBook Pro. You can also use `yarn open` to build the library and then open the resulting file in Sketch.
 
-If all went well, you'll now have a `material-design-icons.sketch` file on your project folder. It'll be about 7.5 Mb in size, with all the Material Design Icons neatly positioned on a grid on the `Symbols` page.
+If all went well, you'll now have a `material-design-icons.sketch` file on your project folder. It'll be about 11 Mb in size, with all the Material Design Icons neatly positioned on a grid on the `Symbols` page.
 
 ## Bonus
 

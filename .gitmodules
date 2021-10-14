@@ -1,4 +1,0 @@
-[submodule "assets/material-design-icons"]
-	path = assets/material-design-icons
-	url = https://github.com/google/material-design-icons.git
-	shallow = true
