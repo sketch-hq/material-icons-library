@@ -1,9 +1,7 @@
 node_modules
 index.js
 *.sketch
-foo
-samples
 yarn.lock
 .DS_Store
 assets/material-design-icons
-distf
+dist
