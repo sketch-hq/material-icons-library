@@ -462,7 +462,7 @@ const sketchBlocks = {
     shadows: [],
   }),
   sampleStyle: (): FileFormat.Style => {
-    let style = sketchBlocks.emptyStyle()
+    const style = sketchBlocks.emptyStyle()
     style.borders = [
       {
         _class: 'border',

@@ -11,11 +11,11 @@ import FileFormat from '@sketch-hq/sketch-file-format-ts'
 import { SketchFile, toFile } from '@sketch-hq/sketch-file'
 import { sketchBlocks } from './sketch-blocks'
 
-let outputFile = 'material-design-icons.sketch'
+const outputFile = 'material-design-icons.sketch'
 
 console.log(`\n\nMaterial Icons Library v${process.env.npm_package_version}`)
 
-var layerCollection = []
+const layerCollection = []
 const files = glob.sync('assets/material-design-icons/src/**/**/**/*.svg')
 //.slice(0, 100) // Limit number of icons, for testing
 
@@ -31,9 +31,9 @@ files.forEach((file, index) => {
   const width: number = parseFloat(json.attributes.width) || 100
   const height: number = parseFloat(json.attributes.height) || 100
 
-  let columns = 30
-  let iconSpacing = 50
-  var symbolMaster: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
+  const columns = 30
+  const iconSpacing = 50
+  const symbolMaster: FileFormat.SymbolMaster = sketchBlocks.emptySymbolMaster(
     svgName,
     width,
     height,
@@ -112,7 +112,7 @@ function saveFile(layerCollection) {
     user,
     workspace,
   }
-  let fileToSave: SketchFile = {
+  const fileToSave: SketchFile = {
     contents: contents,
     filepath: outputFile,
   }

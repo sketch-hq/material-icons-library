@@ -12,7 +12,7 @@ const s2v = {
     ) {
       return sketchBlocks.emptyStyle()
     } else {
-      let style = sketchBlocks.sampleStyle()
+      const style = sketchBlocks.sampleStyle()
       if (svgData.attributes.opacity) {
         style.fills[0].color.alpha = parseFloat(svgData.attributes.opacity)
       }
@@ -20,7 +20,7 @@ const s2v = {
     }
   },
   rect: (svgData: INode): FileFormat.Rectangle => {
-    let sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
+    const sketchRectangle: FileFormat.Rectangle = sketchBlocks.emptyRectangle(
       svgData.attributes.id || 'rectangle',
       parseFloat(svgData.attributes.x) || 0,
       parseFloat(svgData.attributes.y) || 0,
@@ -31,7 +31,7 @@ const s2v = {
       // SVG supports an `ry` attribute for vertical corner radius (see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect)
       // As far as I know, we don't have anything similar in Sketch, and I doubt it makes sense to try to implement it,
       // but I think it's worth mentioning here. This implementation just takes the first it finds and calls it a day.
-      let cornerRadius =
+      const cornerRadius =
         parseFloat(svgData.attributes.rx) || parseFloat(svgData.attributes.ry)
       sketchRectangle.fixedRadius = cornerRadius
       sketchRectangle.points.forEach(point => {
@@ -48,15 +48,15 @@ const s2v = {
     // We may need to recalculate the frame for the path after adding the points
     // Looks like we could use https://svgjs.com for that `yarn add @svgdotjs/svg.js`
     // By now, we'll use a fixed width and height for this demo
-    let width = 24
-    let height = 24
+    const width = 24
+    const height = 24
 
     /**
      * We don't really need to split paths or know how many of them are there,
      * or make special code paths for 1 vs multiple paths.
      * We just need to start painting, and keep pushing paths to the container…
      */
-    let container = sketchBlocks.emptyShapeGroup(
+    const container = sketchBlocks.emptyShapeGroup(
       svgData.attributes.id,
       parseFloat(svgData.attributes.x),
       parseFloat(svgData.attributes.y),
@@ -64,11 +64,11 @@ const s2v = {
       parseFloat(svgData.attributes.height) || height
     )
     container.style = s2v.parseStyle(svgData)
-    let svgPath: Path = {
+    const svgPath: Path = {
       type: 'path',
       d: svgData.attributes.d,
     }
-    let svgPathPoints: Point[] = toPoints(svgPath)
+    const svgPathPoints: Point[] = toPoints(svgPath)
     let firstPath = true
     let currentPath: FileFormat.ShapePath
     let currentPoints: FileFormat.CurvePoint[]
@@ -103,7 +103,7 @@ const s2v = {
         currentControlPoints = []
         currentPointCounter = 0
       }
-      let sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
+      const sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
         point.x / width,
         point.y / height
       )
@@ -165,7 +165,7 @@ const s2v = {
   },
   group: (svgData: INode): FileFormat.Group => {
     // Hello recursivity, do not hesitate to call yourself if you need any help
-    let sketchGroup: FileFormat.Group = sketchBlocks.emptyGroup(
+    const sketchGroup: FileFormat.Group = sketchBlocks.emptyGroup(
       svgData.attributes.id || 'Group',
       parseFloat(svgData.attributes.x) || 0,
       parseFloat(svgData.attributes.y) || 0,
@@ -174,12 +174,12 @@ const s2v = {
     )
     // We're going to store a reference to the group's style, in case we
     // need to apply it to any of its children if they don't have a style set
-    let groupStyle = s2v.parseStyle(svgData)
+    const groupStyle = s2v.parseStyle(svgData)
 
     // Traverse Group contents (here's where you'll wish you had made all the parsing code
     // reusable in a library, )
     svgData.children.forEach((item, index) => {
-      let sketchLayer:
+      const sketchLayer:
         | FileFormat.Group
         | FileFormat.ShapePath
         | FileFormat.ShapeGroup
@@ -197,7 +197,7 @@ const s2v = {
       // If the layer is using a default style, use the parent style from the group
       if (sketchLayer) {
         if (sketchLayer.style) {
-          let style = sketchLayer.style
+          const style = sketchLayer.style
           // This is an oversimplification of this check, but it will work for our sample code
           if (
             style.borders.length == 1 &&
@@ -322,22 +322,22 @@ const s2v = {
     textBehaviour: FileFormat.TextBehaviour.Flexible,
   }),
   polygon: (svgData: INode): FileFormat.ShapePath => {
-    let width = 24
-    let height = 24
+    const width = 24
+    const height = 24
     const svgPolygon: Polygon = {
       type: 'polygon',
       points: svgData.attributes.points,
     }
-    let svgPolygonPoints: Point[] = toPoints(svgPolygon)
-    let sketchPolygonPoints: FileFormat.CurvePoint[] = []
+    const svgPolygonPoints: Point[] = toPoints(svgPolygon)
+    const sketchPolygonPoints: FileFormat.CurvePoint[] = []
     svgPolygonPoints.forEach(point => {
-      let sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
+      const sketchPoint: FileFormat.CurvePoint = sketchBlocks.emptyPoint(
         point.x / width,
         point.y / height
       )
       sketchPolygonPoints.push(sketchPoint)
     })
-    let sketchPath = sketchBlocks.emptyShapePath(
+    const sketchPath = sketchBlocks.emptyShapePath(
       svgData.attributes.id || 'Polygon',
       0,
       0,
@@ -377,7 +377,7 @@ const s2v = {
             case 'linearGradient':
               // https://www.w3.org/TR/SVG/pservers.html#LinearGradientElement
               // ## Parse Attributes
-              let linearGradientDefaults = {
+              const linearGradientDefaults = {
                 id: `linear-gradient-${index}`,
                 // TODO: These values are actually of the <length> type. So they can come in all sorts of units. Find a proper parser for that (check https://github.com/reworkcss/css)
                 x1: 0,
@@ -389,7 +389,7 @@ const s2v = {
                 spreadMethod: 'pad',
                 href: '',
               }
-              let attributes = {
+              const attributes = {
                 ...linearGradientDefaults,
                 ...svgData.attributes,
               }
@@ -397,7 +397,9 @@ const s2v = {
               // Children of a linearGradient element can be any of:
               // desc, title, metadata, animate, animateTransform, script, set, stop, style
               // We'll only worry about `stop` elements by now
-              let stops = def.children.filter(element => element.name == 'stop')
+              const stops = def.children.filter(
+                element => element.name == 'stop'
+              )
               stops.forEach(stop => {
                 // https://www.w3.org/TR/SVG/pservers.html#StopElement
                 // console.log(stop)
@@ -436,17 +438,17 @@ const s2v = {
     }
   },
   updateCurveControlPoints(
-    currentControlPoints: any,
+    currentControlPoints,
     currentPoints: FileFormat.CurvePoint[],
     width: number,
     height: number
   ): FileFormat.CurvePoint[] {
     if (currentControlPoints.length > 0) {
       currentControlPoints.forEach(pointData => {
-        let index = pointData[0]
-        let curve: CurveCubic = pointData[1]
-        let thisPoint = currentPoints[index]
-        let nextPoint = currentPoints[index - 1]
+        const index = pointData[0]
+        const curve: CurveCubic = pointData[1]
+        const thisPoint = currentPoints[index]
+        const nextPoint = currentPoints[index - 1]
         thisPoint.curveMode = FileFormat.CurveMode.Mirrored
         thisPoint.curveTo = `{ x: ${curve.x2 / width}, y: ${curve.y2 / height}}`
         thisPoint.hasCurveTo = true
