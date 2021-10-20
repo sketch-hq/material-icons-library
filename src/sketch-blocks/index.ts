@@ -7,8 +7,7 @@ const sketchBlocks = {
     r: FileFormat.UnitInterval,
     g: FileFormat.UnitInterval,
     b: FileFormat.UnitInterval,
-    alpha?: FileFormat.UnitInterval,
-    swatchID?: FileFormat.Uuid
+    alpha?: FileFormat.UnitInterval
   ): FileFormat.Color => {
     return {
       alpha: alpha || 1,
