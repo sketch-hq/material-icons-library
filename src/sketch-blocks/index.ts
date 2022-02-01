@@ -366,6 +366,7 @@ const sketchBlocks = {
     y?: FileFormat.UnitInterval
   ): FileFormat.CurvePoint => ({
     _class: 'curvePoint',
+    cornerStyle: FileFormat.CornerStyle.Squared,
     cornerRadius: 0,
     curveMode: FileFormat.CurveMode.Straight,
     curveFrom: '',
@@ -379,6 +380,7 @@ const sketchBlocks = {
     return [
       {
         _class: 'curvePoint',
+        cornerStyle: FileFormat.CornerStyle.Squared,
         cornerRadius: 0,
         curveFrom: '{0.77614237490000004, 1}',
         curveMode: 2,
@@ -389,6 +391,7 @@ const sketchBlocks = {
       },
       {
         _class: 'curvePoint',
+        cornerStyle: FileFormat.CornerStyle.Squared,
         cornerRadius: 0,
         curveFrom: '{1, 0.22385762510000001}',
         curveMode: 2,
@@ -399,6 +402,7 @@ const sketchBlocks = {
       },
       {
         _class: 'curvePoint',
+        cornerStyle: FileFormat.CornerStyle.Squared,
         cornerRadius: 0,
         curveFrom: '{0.22385762510000001, 0}',
         curveMode: 2,
@@ -409,6 +413,7 @@ const sketchBlocks = {
       },
       {
         _class: 'curvePoint',
+        cornerStyle: FileFormat.CornerStyle.Squared,
         cornerRadius: 0,
         curveFrom: '{0, 0.77614237490000004}',
         curveMode: 2,
